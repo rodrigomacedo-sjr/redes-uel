@@ -6,8 +6,12 @@ INCOMPLETE: O sistema de salas precisa ser testado e refinado.
 """
 import socket
 import random
+import threading
 
 HOST = '127.0.0.1'
+
+clientes_conectados = set()
+
 
 class Cliente:
     """
@@ -29,14 +33,20 @@ class Cliente:
 
     def configurar_sala(self):
         """Cria uma sala com um código aleatório e começa a escutar conexões."""
-        room_cod = random.randint(10000, 99999)
-        self.sala_socket.bind((HOST, cod))
+        room_code = random.randint(10000, 99999)
+        self.sala_socket.bind((HOST, room_code))
         self.sala_socket.listen(5)
-        print(f"Sala criada\nCódigo da sala: {cod}")
+        print(f"Sala criada\nCódigo da sala: {room_code}")
 
     def monitorar_pedidos(self):
         """Monitora conexões de clientes enquanto a sala estiver aberta."""
-        pass
+        while True:
+            conn, endereco = self.sala_socket.accept()
+            clientes_conectados.add(conn)
+            print(f"Conectado com: {endereco}. Total de clientes: {len(clientes_conectados)}")
+
+            thread = threading.Thread(target=self.utilizar_sala, args=(conn,))
+            thread.start()
 
     def utilizar_sala(self):
         """Monitora o recebimento de dados dos clientes enquanto a sala estiver aberta.
@@ -44,7 +54,8 @@ class Cliente:
         Encerra a sala quando finalizado.
         """
         try:
-            pass
+           pass
+            # Continuar...
         finally:
             self.fechar_conexao_sala()
 
