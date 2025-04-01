@@ -29,7 +29,7 @@ class Cliente:
 
     def configurar_sala(self):
         """Cria uma sala com um código aleatório e começa a escutar conexões."""
-        cod = random.randint(10000, 99999)
+        room_cod = random.randint(10000, 99999)
         self.sala_socket.bind((HOST, cod))
         self.sala_socket.listen(5)
         print(f"Sala criada\nCódigo da sala: {cod}")
