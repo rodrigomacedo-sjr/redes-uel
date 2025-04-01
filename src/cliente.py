@@ -4,7 +4,6 @@ Arquivo responsável por gerenciar o menu do Usuário (Cliente).
 TODO: Implementar a lógica de gerenciamento de salas.
 INCOMPLETE: O sistema de salas precisa ser testado e refinado.
 """
-
 import socket
 import random
 
