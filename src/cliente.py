@@ -1,3 +1,6 @@
+"""
+Arquivo responsável para gerenciar o menu do Usuário (Cliente)
+"""
 import socket
 import random
 
