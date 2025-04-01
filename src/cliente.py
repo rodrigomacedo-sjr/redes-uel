@@ -1,13 +1,19 @@
 """
-Arquivo responsável para gerenciar o menu do Usuário (Cliente)
+Arquivo responsável por gerenciar o menu do Usuário (Cliente).
+
+TODO: Implementar a lógica de gerenciamento de salas.
+INCOMPLETE: O sistema de salas precisa ser testado e refinado.
 """
+
 import socket
 import random
 
 HOST = '127.0.0.1'
 
 class Cliente:
-    """Representa um cliente que pode se conectar a um servidor e gerenciar uma sala."""
+    """
+    Representa um cliente que pode se conectar a um servidor e gerenciar uma sala.
+    """
 
     def __init__(self):
         """Inicializa os sockets para comunicação com o servidor e para criação de salas."""
@@ -16,7 +22,6 @@ class Cliente:
 
     def configurar_cliente(self, host: str, port: int):
         """Estabelece conexão com um servidor.
-
         Args:
             host (str): Endereço IP do servidor.
             port (int): Porta do servidor.
