@@ -31,7 +31,7 @@ def enviar(ip, port):
     print("Conectei (envio)...")
 
     a = "x"
-    while a != "goodbye":
+    while a != "fim":
         a = input()
         print()
         s.send(a.encode()) 
