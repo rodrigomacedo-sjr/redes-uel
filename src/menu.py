@@ -7,3 +7,6 @@ Funções:
 """
 def init():
     pass
+
+def enviarMsg():
+    pass
