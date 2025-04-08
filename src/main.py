@@ -2,7 +2,7 @@ import socket
 import threading
 import time
 import sys
-
+from menu import init
 
 def ouvir(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,17 +43,15 @@ def aguardar(tempo):
 
 
 def main():
-    args = sys.argv[1:]
-    L_PORT = args[0]
-    L_IP = "0.0.0.0"  # NÃO MUDA
-    print(f"Ouvindo em {L_IP} {L_PORT}")
+    username, porta_receber, porta_enviar, ip_amigo = init()
+    meu_ip = "0.0.0.0"
 
-    S_PORT = args[1]
-    S_IP = "191.52.82.222"  # IP DO OUTRO USUÁRIO
-    print(f"Enviando para {S_IP} {S_PORT}")
+    print(f"Ouvindo em {meu_ip} {porta_receber}")
+    # S_IP = "191.52.82.222"  # IP DO OUTRO USUÁRIO
+    print(f"Enviando para {ip_amigo} {porta_enviar}")
 
-    thread_ouvir = threading.Thread(target=ouvir, args=(L_IP, L_PORT), daemon=True)
-    thread_enviar = threading.Thread(target=enviar, args=(S_IP, S_PORT), daemon=True)
+    thread_ouvir = threading.Thread(target=ouvir, args=(meu_ip, porta_receber), daemon=True)
+    thread_enviar = threading.Thread(target=enviar, args=(ip_amigo, porta_enviar), daemon=True)
 
     thread_ouvir.start()
     aguardar(5)
