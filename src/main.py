@@ -48,7 +48,7 @@ def main():
 
     S_PORT = args[1]
     # S_IP = args[y]
-    S_IP = "10.90.69.80" # colocar o ip da outra pessoa aqui
+    S_IP = "191.52.82.222" # colocar o ip da outra pessoa aqui
     print(f"sending to {S_IP} {S_PORT}")
 
     listen_thread = threading.Thread(target=ouvir, args=(L_IP, L_PORT), daemon=True)
