@@ -1,9 +1,9 @@
 import socket
 import threading
 import time
-import sys
-from menu import init
+from menu import init, teste
 
+ativo = True
 
 def ouvir(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,9 +15,9 @@ def ouvir(ip, port):
     conn, addr = s.accept()
     print("Conexão (recebimento) [OK]")
 
-    a = ""
-    while a != "fim":
+    while ativo:
         a = conn.recv(1024)
+        ativo = teste(a)
         print(f"Recebido: {a.decode()}\n")
     return
 
@@ -28,9 +28,9 @@ def enviar(ip, port):
     s.connect((ip, int(port)))
     print("Conexão envio [OK]")
 
-    a = ""
-    while a != "fim":
+    while ativo:
         a = input()
+        ativo = teste(a)
         print()
         s.send(a.encode())
     return
@@ -44,17 +44,17 @@ def aguardar(tempo):
 
 
 def main():
-    username, porta_receber, porta_enviar, ip_amigo = init()
-    meu_ip = "0.0.0.0"
+    username, porta_receber, porta_destino, ip_destino = init()
+    IP = "0.0.0.0"
 
-    print(f"Ouvindo em {meu_ip} {porta_receber}")
-    print(f"Enviando para {ip_amigo} {porta_enviar}")
+    print(f"Ouvindo em {IP} {porta_receber}")
+    print(f"Enviando para {ip_destino} {porta_destino}")
 
     thread_ouvir = threading.Thread(
-        target=ouvir, args=(meu_ip, porta_receber), daemon=True
+        target=ouvir, args=(IP, porta_receber), daemon=True
     )
     thread_enviar = threading.Thread(
-        target=enviar, args=(ip_amigo, porta_enviar), daemon=True
+        target=enviar, args=(ip_destino, porta_destino), daemon=True
     )
 
     thread_ouvir.start()

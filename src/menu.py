@@ -7,10 +7,13 @@ Funções:
 """
 def init():
     username = input("Digite seu nome de usuário: ")
-    porta_receber = int(input("Digite a sua porta para receber mensagens: "))
-    porta_enviar = int(input("Digite a sua porta para enviar mensagens: "))
-    ip_amigo = int(input("Insira o IP do seu amigo que quer se conectar: "))
-    return username, porta_receber, porta_enviar, ip_amigo
+    porta_receber = (input("Digite a sua porta para receber mensagens: "))
+    porta_destino = (input("Digite a sua porta de destino das mensagens: "))
+    ip_destino = (input("Insira o IP de destino: "))
+    return username, porta_receber, porta_enviar, ip_destino
 
 def enviarMsg():
     pass
+
+def teste(mensagem):
+    return not mensagem == "fim"
