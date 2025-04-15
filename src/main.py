@@ -14,24 +14,26 @@ def ouvir(ip, port):
     conn, addr = s.accept()
     print("Conexão (recebimento) [OK]")
 
-    a = ""
+    a = conn.recv(1024)
+    user = a.decode()
     while a != "fim":
         a = conn.recv(1024)
-        print(f"Recebido: {a.decode()}\n")
+        print(f"{user}: {a.decode()}")
     sys.exit()
 
 
-def enviar(ip, port):
+def enviar(ip, port, username):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     s.connect((ip, int(port)))
     print("Conexão envio [OK]")
 
-    a = ""
+    a = username
+    s.send(a.encode())
     while a != "fim":
         a = input()
-        print()
         s.send(a.encode())
+        print(a)
     sys.exit()
 
 
@@ -51,8 +53,8 @@ def main():
     print(f"Enviando para {ip_amigo} {porta_enviar}")
 
     thread_ouvir = threading.Thread(target=ouvir, args=(meu_ip, porta_receber), daemon=True)
-    thread_enviar = threading.Thread(target=enviar, args=(ip_amigo, porta_enviar), daemon=True)
-
+    thread_enviar = threading.Thread(target=enviar, args=(ip_amigo, porta_enviar, username), daemon=True)
+    start = input("Digite enter para entrar em call: ")
     thread_ouvir.start()
     aguardar(5)
     thread_enviar.start()
