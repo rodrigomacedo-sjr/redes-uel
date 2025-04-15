@@ -6,6 +6,7 @@ from menu import init, teste
 ativo = True
 
 def ouvir(ip, port):
+    ativo = True
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     s.bind((ip, int(port)))
@@ -23,6 +24,7 @@ def ouvir(ip, port):
 
 
 def enviar(ip, port):
+    ativo = True
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     s.connect((ip, int(port)))
@@ -44,19 +46,18 @@ def aguardar(tempo):
 
 
 def main():
-    username, porta_receber, porta_destino, ip_destino = init()
+    porta_receber, porta_destino, ip_destino = init()
     IP = "0.0.0.0"
 
     print(f"Ouvindo em {IP} {porta_receber}")
     print(f"Enviando para {ip_destino} {porta_destino}")
-
     thread_ouvir = threading.Thread(
         target=ouvir, args=(IP, porta_receber), daemon=True
     )
     thread_enviar = threading.Thread(
         target=enviar, args=(ip_destino, porta_destino), daemon=True
     )
-
+    input("Digite enter para iniciar")
     thread_ouvir.start()
     aguardar(5)
     thread_enviar.start()
