@@ -4,6 +4,7 @@ import time
 import sys
 from menu import init
 
+
 def ouvir(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -18,7 +19,7 @@ def ouvir(ip, port):
     while a != "fim":
         a = conn.recv(1024)
         print(f"Recebido: {a.decode()}\n")
-    sys.exit()
+    return
 
 
 def enviar(ip, port):
@@ -32,7 +33,7 @@ def enviar(ip, port):
         a = input()
         print()
         s.send(a.encode())
-    sys.exit()
+    return
 
 
 def aguardar(tempo):
@@ -47,11 +48,14 @@ def main():
     meu_ip = "0.0.0.0"
 
     print(f"Ouvindo em {meu_ip} {porta_receber}")
-    # S_IP = "191.52.82.222"  # IP DO OUTRO USUÁRIO
     print(f"Enviando para {ip_amigo} {porta_enviar}")
 
-    thread_ouvir = threading.Thread(target=ouvir, args=(meu_ip, porta_receber), daemon=True)
-    thread_enviar = threading.Thread(target=enviar, args=(ip_amigo, porta_enviar), daemon=True)
+    thread_ouvir = threading.Thread(
+        target=ouvir, args=(meu_ip, porta_receber), daemon=True
+    )
+    thread_enviar = threading.Thread(
+        target=enviar, args=(ip_amigo, porta_enviar), daemon=True
+    )
 
     thread_ouvir.start()
     aguardar(5)
