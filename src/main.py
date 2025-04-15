@@ -19,7 +19,7 @@ def ouvir(ip, port):
     while a != "fim":
         a = conn.recv(1024)
         print(f"{user}: {a.decode()}")
-    sys.exit()
+    return
 
 
 def enviar(ip, port, username):
@@ -34,7 +34,7 @@ def enviar(ip, port, username):
         a = input()
         s.send(a.encode())
         print(a)
-    sys.exit()
+    return
 
 
 def aguardar(tempo):
@@ -45,15 +45,15 @@ def aguardar(tempo):
 
 
 def main():
-    username, porta_receber, porta_enviar, ip_amigo = init()
+    username, porta_receber, porta_enviar, ip_destino = init()
     meu_ip = "0.0.0.0"
 
     print(f"Ouvindo em {meu_ip} {porta_receber}")
     # S_IP = "191.52.82.222"  # IP DO OUTRO USUÁRIO
-    print(f"Enviando para {ip_amigo} {porta_enviar}")
+    print(f"Enviando para {ip_destino} {porta_enviar}")
 
     thread_ouvir = threading.Thread(target=ouvir, args=(meu_ip, porta_receber), daemon=True)
-    thread_enviar = threading.Thread(target=enviar, args=(ip_amigo, porta_enviar, username), daemon=True)
+    thread_enviar = threading.Thread(target=enviar, args=(ip_destino, porta_enviar, username), daemon=True)
     start = input("Digite enter para entrar em call: ")
     thread_ouvir.start()
     aguardar(5)

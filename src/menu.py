@@ -10,8 +10,8 @@ def init():
     username = input("Digite seu nome de usuário: ")
     porta_receber = input("Digite a sua porta para receber mensagens: ")
     porta_enviar = input("Digite a sua porta para enviar mensagens: ")
-    ip_amigo = input("Insira o IP do seu amigo que quer se conectar: ")
-    return username, porta_receber, porta_enviar, ip_amigo
+    ip_destino = input("Insira o IP do destino que quer se conectar: ")
+    return username, porta_receber, porta_enviar, ip_destino
 
 
 def menu():
