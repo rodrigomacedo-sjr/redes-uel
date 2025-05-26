@@ -1,68 +1,47 @@
-import socket
-import threading
-import time
-import sys
-from menu import init
+import argparse
+from enviar import enviar_pacotes
+from receber import receber_pacotes
 
-def ouvir(ip, port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    s.bind((ip, int(port)))
-
-    s.listen()
-
-    conn, addr = s.accept()
-    print("Conexão (recebimento) [OK]")
-
-    a = conn.recv(1024)
-    user = a.decode()
-    while a != "fim":
-        a = conn.recv(1024)
-        print(f"{user}: {a.decode()}")
-    return
-
-
-def enviar(ip, port, username):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    s.connect((ip, int(port)))
-    print("Conexão envio [OK]")
-
-    a = username
-    s.send(a.encode())
-    while a != "fim":
-        a = input()
-        s.send(a.encode())
-        print(a)
-    return
-
-
-def aguardar(tempo):
-    print("Aguardando")
-    for i in range(int(tempo)):
-        print(i + 1)
-        time.sleep(1)
-
+def parse_args():
+    parser = argparse.ArgumentParser(description='Envio de pacotes TCP/UDP')
+    parser.add_argument('--ip', default='127.0.0.1', help='IP de destino e recepção')
+    parser.add_argument('--porta-envio', type=int, default=9000, help='Porta de envio')
+    parser.add_argument('--porta-recebe', type=int, default=9001, help='Porta de recepção')
+    parser.add_argument('--protocolo', choices=['tcp','udp'], default='udp', help='Protocolo')
+    parser.add_argument('--testes', nargs='+', type=int, default=[10,100,1000],
+                        help='Lista de tamanhos de teste')
+    return parser.parse_args()
 
 def main():
-    username, porta_receber, porta_enviar, ip_destino = init()
-    meu_ip = "0.0.0.0"
+    args = parse_args()
 
-    print(f"Ouvindo em {meu_ip} {porta_receber}")
-    # S_IP = "191.52.82.222"  # IP DO OUTRO USUÁRIO
-    print(f"Enviando para {ip_destino} {porta_enviar}")
+    for n in args.testes:
+        print(f'\n=== Teste com {n} pacotes ({args.protocolo.upper()}) ===')
 
-    thread_ouvir = threading.Thread(target=ouvir, args=(meu_ip, porta_receber), daemon=True)
-    thread_enviar = threading.Thread(target=enviar, args=(ip_destino, porta_enviar, username), daemon=True)
-    start = input("Digite enter para entrar em call: ")
-    thread_ouvir.start()
-    aguardar(5)
-    thread_enviar.start()
+        # Iniciar receptor em background
+        import threading
+        resultado_receber = {}
+        def thread_receber():
+            recebido = receber_pacotes(args.ip, args.porta_recebe, args.protocolo, n)
+            resultado_receber['qtd'] = recebido
 
-    thread_ouvir.join()
-    thread_enviar.join()
+        t = threading.Thread(target=thread_receber, daemon=True)
+        t.start()
 
+        # Aguarda receptor subir
+        import time; time.sleep(1)
 
-if __name__ == "__main__":
+        # Envia pacotes
+        stats = enviar_pacotes(args.ip, args.porta_recebe, args.protocolo, n)
+
+        t.join()
+
+        print(f"Pacotes enviados:       {stats['enviados']}")
+        print(f"Retransmissões:         {stats['retransmissoes']}")
+        print(f"Pacotes não confirmados:{stats['perdidos']}")
+        print(f"Pacotes recebidos:      {resultado_receber.get('qtd',0)}")
+        print(f"Tempo total:            {stats['tempo']:.3f}s")
+
+if __name__ == '__main__':
     main()
-    print("Programa encerrado...")
+

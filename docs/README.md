@@ -2,9 +2,11 @@
 
 ## Como usar
 
-1. Setar a variável global `S_IP` para o IP do outro usuário
-2. Rodar o programa com `python main.py {porta para ouvir} {porta para enviar}`
-3. É importante que ambos os usuários executem o programa ao mesmo tempo, com as portas equivalentes
+1. Ter Python 3 instalado
+2. Rodar o programa com `python main.py}`
+3. Informar porta para ouvir e porta destino.
+4. Informar o IP da outra parte.
+5. É importante que ambos os usuários executem o programa ao mesmo tempo, com as portas equivalentes
 
 ## Trabalho 02 chat.tcp
 
