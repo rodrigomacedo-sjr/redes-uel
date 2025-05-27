@@ -1,17 +1,12 @@
 # Redes de Computadores
+
 Trabalhos desenvolvidos na disciplina Redes I do curso de Ciência da Computação UEL. Abaixo estão descritas as principais entregas, com direcionamento para documentação mais aprofundada de cada uma delas.
 
-## Como usar
+## [Trabalhos 1 e 2, chat TCP/UDP](docs/chat_tcp_udp)
 
-1. Ter Python 3 instalado
-2. Rodar o programa com `python main.py}`
-3. Informar porta para ouvir e porta destino.
-4. Informar o IP da outra parte.
-5. É importante que ambos os usuários executem o programa ao mesmo tempo, com as portas equivalentes
+Aplicação que utiliza os dois principais protocolos de comunicação de redes que sustentam o mundo moderno, TCP e UDP. Envolve outras ideias importantes, como: IP, protas de rede, arquitetura TCP/IP, camada de aplicação, camada de transporte e camada de rede. Foram utilizados conceitos de modularização e clean code, além de exercitadas as habilidades de documentação de código tanto interna (nomes de funções e variáveis, comentários) quanto externa (arquivos .md explicativos).
 
-## Trabalho 02 chat TCP
+Destes trabalhos, puderam ser tirados conhecimentos da diferença entre os protocolos TCP e UDP, vistos na prática não só no momento da implementação em si, mas nos testes feitos posteriormente. No futuro, a interface poderia ser melhorada para facilitar a utilização, mas funcionalmente, todos os requisitos e objetivos dos trabalhos foram apropriadamente cumpridos.
 
-1.  Criar uma aplicação em phyton para tornar disponível um Chat entre dois computadores via TCP/IP.
-2.  Utilizar a API de Socket disponível e protocolo TCP para a camada de transporte.
-3.  Apresentar uma documentação da ferramenta proposta com um fluxograma operacional detalhado com todas as funções de envio e recebimento entre os dois computadores.
-4.  Solicitar endereço IP de destino e porta TCP que será utilizada pela aplicação Chat.TCP. Entrega via e-mail, utilizar o template para o trabalho. Enviar e-mail para professor com subject/título: até as 10.00 horas do dia 01/04/2025 trab.lab.1s.parcial.01.chat.tcp e no dia 08/04/2024 ... até as 10.00hs.
+## [Trabalho 3, Protocolo de Transferência de Dados](docs/protocolo_transferencia.md)
+TODO
