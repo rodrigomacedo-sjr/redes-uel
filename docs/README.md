@@ -1,4 +1,5 @@
 # Redes de Computadores
+Trabalhos desenvolvidos na disciplina Redes I do curso de Ciência da Computação UEL. Abaixo estão descritas as principais entregas, com direcionamento para documentação mais aprofundada de cada uma delas.
 
 ## Como usar
 
@@ -8,7 +9,7 @@
 4. Informar o IP da outra parte.
 5. É importante que ambos os usuários executem o programa ao mesmo tempo, com as portas equivalentes
 
-## Trabalho 02 chat.tcp
+## Trabalho 02 chat TCP
 
 1.  Criar uma aplicação em phyton para tornar disponível um Chat entre dois computadores via TCP/IP.
 2.  Utilizar a API de Socket disponível e protocolo TCP para a camada de transporte.

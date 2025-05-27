@@ -1,30 +1,55 @@
-## O que são Sockets  
-- Sockets são como “tomadas” usadas para a comunicação entre computadores em uma rede.  
-- Eles permitem que programas enviem e recebam dados, como acontece em um chat ou ao acessar um site.  
-- Cada socket tem um **endereço IP** (para identificar o computador) e uma **porta** (para identificar o programa).  
-- Existem dois tipos principais:  
-  - **TCP (SOCK_STREAM)**: garante que os dados cheguem completos e na ordem correta.  
-  - **UDP (SOCK_DGRAM)**: mais rápido, mas sem garantia de entrega.  
-- São usados em jogos online, aplicativos de mensagens, servidores web e muito mais.  
+# Sockets
 
----
-## Sockets em Python  
+Referente aos trabalho 1 e 2, [`chat TCP UDP`](src/chat_tcp_udp/).
+
+## Objetivos do trabalho:
+
+- Criar uma aplicação em Python para tornar disponível um Chat entre dois computadores via TCP/IP
+  - Utilizar a API de Socket para a camada de transporte
+- Apresentar documentação da ferramenta, incluindo um fluxograma operacional
+- Permitir envio via UDP, também utilizando a API do Python
+- Testar ambos os protocolos para perda de pacotes e tempo de execução, documentar os achados
+
+# Instruções de uso
+1. Ter Python 3.10+ instalado
+2. Rodar o programa com `main.py --ip {ip_de_envio}` em dois computadores conectados na mesma rede
+
+# Teoria
+
+## O que são Sockets
+
+- Sockets são como “tomadas” usadas para a comunicação entre computadores em uma rede.
+- Eles permitem que programas enviem e recebam dados, como acontece em um chat ou ao acessar um site.
+- Cada socket tem um **endereço IP** (para identificar o computador) e uma **porta** (para identificar o programa).
+- Existem dois tipos principais:
+  - **TCP (SOCK_STREAM)**: garante que os dados cheguem completos e na ordem correta.
+  - **UDP (SOCK_DGRAM)**: mais rápido, mas sem garantia de entrega.
+- São usados em jogos online, aplicativos de mensagens, servidores web e muito mais.
+
+## Sockets em Python
+
 Sockets em Python são usados para estabelecer comunicação entre diferentes processos, seja no mesmo computador ou em diferentes dispositivos em uma rede. Eles são criados e manipulados utilizando o módulo `socket` da linguagem. Este módulo permite que você crie conexões de rede utilizando protocolos como TCP (orientado à conexão) ou UDP (sem conexão). Ao usar sockets, programas podem enviar e receber dados entre si, o que é essencial para a criação de servidores e clientes em aplicações de rede.
-### Métodos  
+
+### Métodos
+
 Os métodos fornecidos pelo módulo `socket` permitem criar, gerenciar e finalizar conexões de rede, além de enviar e receber dados. Eles são fundamentais para permitir a comunicação entre computadores e dispositivos em uma rede local ou na internet.
-#### **socket()**:  
-O método `socket()` cria um novo socket, ou ponto de comunicação entre processos. Ele exige dois parâmetros:  
-- **Família de endereços**: Especifica o tipo de protocolo de rede.  
-  - `AF_INET` para IPv4.  
-  - `AF_INET6` para IPv6.  
-- **Tipo de socket**: Define o tipo de comunicação.  
-  - `SOCK_STREAM` para comunicação orientada à conexão (TCP).  
-  - `SOCK_DGRAM` para comunicação sem conexão (UDP).  
+
+#### **socket()**:
+
+O método `socket()` cria um novo socket, ou ponto de comunicação entre processos. Ele exige dois parâmetros:
+
+- **Família de endereços**: Especifica o tipo de protocolo de rede.
+  - `AF_INET` para IPv4.
+  - `AF_INET6` para IPv6.
+- **Tipo de socket**: Define o tipo de comunicação.
+  - `SOCK_STREAM` para comunicação orientada à conexão (TCP).
+  - `SOCK_DGRAM` para comunicação sem conexão (UDP).
 
 Exemplo:
+
 ```Python
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-````
+```
 
 #### **bind()**:
 
@@ -110,6 +135,7 @@ s.close()
 ```
 
 ---
+
 ### Exemplo de Código
 
 #### Servidor
@@ -138,17 +164,17 @@ def comunicar_com_cliente(conn):
             dados = conn.recv(1024)  # Recebe dados do cliente
             if not dados:
                 break  # Encerra a conexão se não houver dados
-            
+
             mensagem_cliente = dados.decode()  # Decodifica os dados recebidos
             print(f"Recebido: {mensagem_cliente}")
-            
+
             if mensagem_cliente.lower() == "off":
                 conn.sendall("Servidor encerrado.".encode())  # Envia mensagem de encerramento
                 break  # Encerra o loop de comunicação
-            
+
             # Envia de volta a resposta para o cliente
             resposta = "Mensagem recebida."
-            conn.sendall(resposta.encode())  
+            conn.sendall(resposta.encode())
     finally:
         conn.close()  # Fecha a conexão após a comunicação
 
@@ -156,7 +182,7 @@ def comunicar_com_cliente(conn):
 def main():
     HOST = '127.0.0.1'  # Definir o endereço do servidor
     PORT = 50000  # Definir a porta do servidor
-    
+
     servidor_socket = configurar_servidor(HOST, PORT)
     conn = aceitar_conexao(servidor_socket)
     comunicar_com_cliente(conn)
@@ -183,11 +209,11 @@ def comunicar_com_servidor(cliente_socket):
         while True:
             mensagem = input("Digite algo para o servidor (ou 'off' para desconectar): ")
             cliente_socket.sendall(mensagem.encode())  # Envia a mensagem para o servidor
-            
+
             # Recebe a resposta do servidor
             dados = cliente_socket.recv(1024)
             print(f"Resposta do servidor: {dados.decode()}")  # Exibe a resposta
-            
+
             if mensagem.lower() == "off":
                 break  # Encerra o loop se o cliente enviar "off"
     finally:
@@ -197,7 +223,7 @@ def comunicar_com_servidor(cliente_socket):
 def main():
     HOST = '127.0.0.1'  # Definir o endereço do servidor
     PORT = 50000  # Definir a porta do servidor
-    
+
     cliente_socket = configurar_cliente(HOST, PORT)
     comunicar_com_servidor(cliente_socket)
 
@@ -209,13 +235,14 @@ if __name__ == '__main__':
 ### Explicação:
 
 - **Servidor**:
-    - O servidor aguarda uma conexão e começa a comunicação.
-    - Ele recebe a mensagem do cliente e, se a mensagem for "off", ele responde com "Servidor encerrado." e encerra a comunicação.
-    - Se a mensagem não for "off", o servidor responde com "Mensagem recebida."
+
+  - O servidor aguarda uma conexão e começa a comunicação.
+  - Ele recebe a mensagem do cliente e, se a mensagem for "off", ele responde com "Servidor encerrado." e encerra a comunicação.
+  - Se a mensagem não for "off", o servidor responde com "Mensagem recebida."
 
 - **Cliente**:
-    - O cliente envia uma mensagem digitada pelo usuário para o servidor.
-    - O cliente aguarda a resposta do servidor e a exibe.
-    - Se o cliente digitar "off", ele encerra a comunicação e fecha a conexão.
+  - O cliente envia uma mensagem digitada pelo usuário para o servidor.
+  - O cliente aguarda a resposta do servidor e a exibe.
+  - Se o cliente digitar "off", ele encerra a comunicação e fecha a conexão.
 
 Esse código garante que o servidor continuará recebendo mensagens do cliente até que o usuário digite "off", momento em que o servidor será encerrado.
