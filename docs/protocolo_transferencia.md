@@ -4,7 +4,7 @@ Referente ao trabalho 3, [Protocolo de Transferência de Dados](stc/protocolo_tr
 
 # Objetivos do trabalho (passo a passo)
 
-1. Elaboração do README.md: Será criado um arquivo README.md abrangente, contendo uma descrição clara do projeto, instruções detalhadas para instalação e uso, bem como uma explicação do problema que o sistema se propõe a resolver. Este documento servirá como guia principal para usuários e colaboradores.
+1. Elaborar do README. Primeiro passo para uma boa documentação.
 2. Desenvolver uma CLI (comand line interface) para aos usuários inserirem os dados básicos necessários. 
 3. Implementar Função de Envio
 4. Implementar Função de Recebimento. Os dados recebidos serão armazenados em arquivos de texto (.txt).
