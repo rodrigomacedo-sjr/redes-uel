@@ -2,7 +2,7 @@
 
 Trabalhos desenvolvidos na disciplina Redes I do curso de Ciência da Computação UEL. Abaixo estão descritas as principais entregas, com direcionamento para documentação mais aprofundada de cada uma delas.
 
-## [Trabalhos 1 e 2, chat TCP/UDP](chat_tcp_udp)
+## [Trabalhos 1 e 2, chat TCP/UDP](chat_tcp_udp.md)
 
 Aplicação que utiliza os dois principais protocolos de comunicação de redes que sustentam o mundo moderno, TCP e UDP. Envolve outras ideias importantes, como: IP, protas de rede, arquitetura TCP/IP, camada de aplicação, camada de transporte e camada de rede. Foram utilizados conceitos de modularização e clean code, além de exercitadas as habilidades de documentação de código tanto interna (nomes de funções e variáveis, comentários) quanto externa (arquivos .md explicativos).
 
