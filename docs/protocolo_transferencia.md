@@ -17,10 +17,10 @@ Referente ao trabalho 3, [Protocolo de Transferência de Dados](stc/protocolo_tr
 11. Apresentar relatório na tela e em PDF com tamanho dos dados transmitidos, número de pacotes enviados, recebidos, perdidos e velocidade de transmissão em bit/s.
 12. Aprimorar interface. Possivelmente algo fora do terminal.
 13. Implementar scripts de distribuição. Linux como prioridade, windows como possibilidade.
-15. Documentar melhor aplicação e criar fluxograma operacional.
+14. Documentar melhor aplicação e criar fluxograma operacional.
 
 ## Outros pontos relevantes
-1.  Separar millhar, centena e decimal nos números nos relatórios.
+1. Separar millhar, centena e decimal nos números nos relatórios.
 2. Transmitir string "*#@ Redes de Computadores UEL 2025 *#@"
 3. Enviar relatórios de atividades realizadas todas as aulas
 
