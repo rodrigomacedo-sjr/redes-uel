@@ -6,6 +6,11 @@ from protocolo_tranferencia.config import HASH_SIZE, MAIN_HEADER, MAIN_HEADER_SI
 
 
 def enviar_pacotes(destino, tamanho):
+    """
+    Parâmetros:
+        Destino: tupla de ip/porta de destino
+        Tamanho: 500, 1000, 1500, tamanho dos dados a serem enviados
+    """
     # Cria socket UDP
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
