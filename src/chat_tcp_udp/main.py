@@ -1,7 +1,7 @@
 import argparse
 from enviar import enviar_pacotes
 from receber import receber_pacotes
-/
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Envio de pacotes TCP/UDP")

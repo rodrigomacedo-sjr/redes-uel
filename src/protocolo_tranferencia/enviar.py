@@ -1,6 +1,6 @@
 import socket
 
-from protocolo_tranferencia.config import MAIN_HEADER
+from src.protocolo_tranferencia.config import MAIN_HEADER
 
 DESTINO = (ip_destino, porta_destino)
 
