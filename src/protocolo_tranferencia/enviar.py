@@ -17,13 +17,13 @@ def enviar_pacotes(destino, tamanho):
     sock.bind(("", 0))
 
     for seq in range(1, 10):
-        payload = os.urandom(tamanho - MAIN_HEADER_SIZE, HASH_SIZE)
+        payload = os.urandom(tamanho - MAIN_HEADER_SIZE - HASH_SIZE)
         dados = seq.to_bytes(4, "big") + MAIN_HEADER.encode("utf-8") + payload
 
-        dados = utils.checksum(dados)
+        dados = dados + utils.calcula_checksum(dados).encode("utf-8")
 
         sock.sendto(dados, destino)
 
     sock.close()
 
-    return {"enviados": total}
+    return enviados 
