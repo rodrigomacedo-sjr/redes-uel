@@ -52,13 +52,51 @@ def menu_relatorio(recebidos, enviados, perdidos, desordenados, corrompidos, tam
 
 
 def menu_inicio():
-    print("=="*5 + "[Server]" + "=="*5)
-    ip_destino = input("Digite o ip destino: ")
-    print(ip_destino)
-    porta_destino = input("Digite o porta destino: ")
-    print(porta_destino)
-    tipo_teste = int(input("Digite o tipo de teste [500|1.000|1.500"))
-    print(tipo_teste)
-    print("==" * 14, end="\n\n")
-    return ip_destino, porta_destino, tipo_teste
 
+    menu = Panel(
+        Text("| MENU |", justify="right", style="bold white on blue"),
+        padding=(1, 2),
+        expand=False
+    )
+
+
+    console.print(menu)
+    tipo = int(input(
+        "Você vai receber ou enviar mensagens?\n"
+        "[0] - Enviar mensagens\n"
+        "[1] - Receber mensagem\n"
+    ))
+
+    if tipo == 0:
+        ip    = input("Digite o seu ip: ")
+        porta = input("Digite a sua porta: ")
+        return ip, porta
+    else:
+        porta = input("Digite a porta de envio: ")
+        tipo_teste = int(input(
+            "Digite o tipo de teste\n"
+            "[500] 500 bytes\n"
+            "[1000] 1k bytes\n"
+            "[1500] 1.5k bytes\n"
+            "Teste: "
+        ))
+        return porta, verifica_tipo(tipo_teste)
+
+"""
+==> Recebe
+ip
+porta
+
+==> Envia
+porta
+tipo de teste
+"""
+
+
+def verifica_tipo(tam):
+    if tam <= 500:
+        return 500
+    elif tam > 500 and tam < 1500:
+        return 1000
+    else:
+        return 1500
