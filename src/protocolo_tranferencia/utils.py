@@ -1,24 +1,26 @@
-# Checksum:
-#   - Função de criar Checksum:
-#       - Pega dados
-#       - Calcula usando hash e retorna
-#   - Função verificar Checksum:
-#       - Recebe hash e dados
-#       - Usa função de calcular
-#       - Compara e retorna se é igual ou não
-
 import hashlib
 
 def calcula_checksum(dados):
     """
     CALCULA CHECKSUM
-        - O parâmetro 'dados' deve ser uma string no modelo 'b"string"'
-        - Retorna o hash da string 'dados'
+        - Recebe o parâmetro 
+            dados: String no modelo b"string"
+        - Retorna o hash da string
     """
+
     sum = hashlib.sha256(dados).hexdigest()
     return sum
 
 def checksum(sum, dados) -> bool:
+    """
+    CHECKSUM
+        - Recebe os parâmetros 
+            sum: Hash de soma (primeiros 64 bytes da mensagem)
+            dados: Mensagem em si, sem a soma
+        - Verifica se a soma de parâmetro é igual a soma da mensagem recebida
+        - Retorna True se sim e False se não 
+    """
+    
     new_sum = calcula_checksum(dados)
     if(sum == new_sum): return True
     else: return False
