@@ -21,6 +21,5 @@ def main():
         tamanho_testes,
     ) = menu_relatorio()
 
-
 if __name__ == "__main__":
     main()
