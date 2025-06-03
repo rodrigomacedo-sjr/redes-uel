@@ -1,10 +1,29 @@
 import socket
+import os
+import utils
 
-from protocolo_tranferencia.config import MAIN_HEADER
+from protocolo_tranferencia.config import HASH_SIZE, MAIN_HEADER, MAIN_HEADER_SIZE
 
-DESTINO = (ip_destino, porta_destino)
 
-with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-    dados = encode(MAIN_HEADER)
-    sock.sendto(dados, DESTINO)
-    print("enviando...")
+def enviar_pacotes(destino, tamanho):
+    """
+    Parâmetros:
+        Destino: tupla de ip/porta de destino
+        Tamanho: 500, 1000, 1500, tamanho dos dados a serem enviados
+    """
+    # Cria socket UDP
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    sock.bind(("", 0))
+
+    for seq in range(1, 10):
+        payload = os.urandom(tamanho - MAIN_HEADER_SIZE, HASH_SIZE)
+        dados = seq.to_bytes(4, "big") + MAIN_HEADER.encode("utf-8") + payload
+
+        dados = utils.checksum(dados)
+
+        sock.sendto(dados, destino)
+
+    sock.close()
+
+    return {"enviados": total}
