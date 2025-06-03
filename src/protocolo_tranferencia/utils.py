@@ -15,8 +15,10 @@ def calcula_checksum(dados):
         - O parâmetro 'dados' deve ser uma string no modelo 'b"string"'
         - Retorna o hash da string 'dados'
     """
-    soma = hashlib.sha256(dados).hexdigest()
-    return soma
+    sum = hashlib.sha256(dados).hexdigest()
+    return sum
 
-def checksum(dados):
-    return dados
+def checksum(sum, dados) -> bool:
+    new_sum = calcula_checksum(dados)
+    if(sum == new_sum): return True
+    else: return False
