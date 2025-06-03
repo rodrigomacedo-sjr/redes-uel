@@ -57,8 +57,8 @@ def menu_inicio():
     print(ip_destino)
     porta_destino = input("Digite o porta destino: ")
     print(porta_destino)
-    tipo_teste = int(input("Digite o tipo de teste [500|1.000|1.500"))
-    print(tipo_teste)
+    tamanho_teste = int(input("Digite o tipo de teste [500|1000|1500"))
+    print(tamanho_teste)
     print("==" * 14, end="\n\n")
-    return ip_destino, porta_destino, tipo_teste
+    return ip_destino, porta_destino, tamanho_teste
 
