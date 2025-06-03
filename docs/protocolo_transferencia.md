@@ -5,8 +5,11 @@ Referente ao trabalho 3, [Protocolo de Transferência de Dados](stc/protocolo_tr
 # Objetivos do trabalho (passo a passo)
 
 1. Elaborar do README. Primeiro passo para uma boa documentação.
-2. Desenvolver uma CLI (comand line interface) para aos usuários inserirem os dados básicos necessários. 
-3. Implementar Função de Envio
+2. Desenvolver uma CLI (comand line interface) para aos usuários inserirem os dados básicos necessários.
+   (A) ip_destino 
+   (B) porta_destino
+   (C) Qual teste (Item 10)
+3. Implementar Função de Envio (num de pacotes enviados)
 4. Implementar Função de Recebimento. Os dados recebidos serão armazenados em arquivos de texto (.txt).
 5. Melhorar função de envio. Incluir a numeração sequencial dos pacotes transmitidos.
 6. Verificar Ordem dos Pacotes: Atualizar função de recebimento para verificar se os pacotes estão sendo recebidos na ordem correta. O sistema deve marcar a quantidade de pacotes recebidos fora de ordem.
