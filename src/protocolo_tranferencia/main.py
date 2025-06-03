@@ -11,5 +11,5 @@ def main():
     pacotes_perdidos = pacotes_enviados - pacotes_recebidos;
     pacotes_recebidos, pacotes_enviados, pacotes_perdidos, pacotes_desordenados, pacotes_corrompidos, tamanho_testes = menu_relatorio()
 
-if __name__ = "main":
+if __name__ == "main":
     main()
