@@ -2,7 +2,7 @@ import socket
 import os
 import utils
 
-from protocolo_tranferencia.config import HASH_SIZE, MAIN_HEADER, MAIN_HEADER_SIZE
+from config import HASH_SIZE, MAIN_HEADER, MAIN_HEADER_SIZE, TOTAL
 
 
 def enviar_pacotes(destino, tamanho):
@@ -13,17 +13,28 @@ def enviar_pacotes(destino, tamanho):
     """
     # Cria socket UDP
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
     sock.bind(("", 0))
 
-    for seq in range(1, 10):
-        payload = os.urandom(tamanho - MAIN_HEADER_SIZE - HASH_SIZE)
-        dados = seq.to_bytes(4, "big") + MAIN_HEADER.encode("utf-8") + payload
+    for seq in range(1, TOTAL + 1):
+        # Garante que o payload não exceda o tamanho total do pacote
+        payload_size = tamanho - MAIN_HEADER_SIZE - HASH_SIZE - 4  # 4 bytes para o seq
+        if payload_size < 0:
+            payload_size = 0
+        payload = os.urandom(payload_size)
 
-        dados = dados + utils.calcula_checksum(dados).encode("utf-8")
+        # Monta o pacote sem o checksum
+        dados_sem_checksum = (
+            seq.to_bytes(4, "big") + MAIN_HEADER.encode("utf-8") + payload
+        )
 
-        sock.sendto(dados, destino)
+        # Calcula o checksum dos dados
+        checksum = utils.calcula_checksum(dados_sem_checksum)
+
+        # Anexa o checksum ao final para formar o pacote completo
+        dados_para_envio = dados_sem_checksum + checksum.encode("utf-8")
+
+        sock.sendto(dados_para_envio, destino)
 
     sock.close()
 
-    return enviados 
+    return TOTAL
