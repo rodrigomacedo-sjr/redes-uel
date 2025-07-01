@@ -4,3 +4,4 @@ dados do computador de envio
 duração da comunicação
 outras globais importantes
 """
+SEGUNDOS = 20
