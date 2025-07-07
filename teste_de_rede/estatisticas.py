@@ -18,14 +18,13 @@ def calcula_velocidade(pacotes) -> tuple:
     Retorna -> tuple : (Kb, Mb, Gb)
     """
     
-    bytes = calcula_bytes_enviados(pacotes)
-    bits = bytes * 8
+    bits = calcula_bytes_enviados(pacotes) * 8
     
     Kb = bits/1024
     Mb = Kb/1024
     Gb = Mb/1024
 
-    return Kb, Mb, Gb
+    return Kb/20, Mb/20, Gb/20
 
 def calcula_pacotes_segundo(pacotes):
     return pacotes / SEGUNDOS
