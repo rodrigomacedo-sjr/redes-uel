@@ -1,8 +1,10 @@
-"""
-string padrão de envio
-dados do computador de envio
-duração da comunicação
-outras globais importantes
-"""
+# MUTÁVEIS
+IP_ENVIO = "192.152.337"
+PORT_ENVIO = "1337"
+
+# IMUTÁVEIS
 SEGUNDOS = 20
+STRING_TESTE = "teste de rede *2025*"
+MAX_TENTATIVAS = 5
+TIMEOUT = 5
 TAMANHO_BYTES = 500
