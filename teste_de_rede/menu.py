@@ -1,11 +1,5 @@
-"""
-1. perguntar TCP ou UDP
-2. pegar o computador de envio da config.py (é mais rápido e fácil)
-3. perguntar upload ou download
-4. output de estatisticas
-"""
-
 import estatisticas
+
 
 def inicializa():
     """
@@ -36,6 +30,21 @@ def inicializa():
 
     return (protocolo, transferencia)
 
+
+def confirma_infos(protocolo, transferencia):
+    print(
+    f"""
+    - - - - - - Confirmação de Dados - - - - - -
+    Protocolo de transferência: {protocolo}
+    Tipo de tranferência: {transferencia}
+
+    Aperte Enter para confirmar ou Ctrl+C para reiniciar programa...
+    """
+    )
+    input()
+
+
+
 def output_estatisticas(pacotes):
     velocidades = estatisticas.calcula_velocidade(pacotes)
     print(
@@ -56,3 +65,12 @@ def output_estatisticas(pacotes):
     =================================================
     """
     )
+
+
+def main():
+    protocolo, transferencia = inicializa()
+    confirma_infos(protocolo, transferencia)
+    output_estatisticas(50)
+
+if __name__ == "__main__":
+    main()
