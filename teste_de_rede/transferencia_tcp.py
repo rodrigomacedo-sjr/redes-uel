@@ -8,7 +8,7 @@ def enviar_pacotes(destinatario):
     """
     Envia uma quantidade 'total' de pacotes para o 'ip' e 'porta' especificados
 
-    Cada pacote tem 500 butes e contém a string "teste de rede *2025*"
+    Cada pacote tem 500 bytes e contém a string "teste de rede *2025*"
 
     Retorna um dicionário com estatísticas da transmissão
 
