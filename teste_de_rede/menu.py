@@ -18,6 +18,12 @@ def inicializa():
     """
     )
     protocolo = int(input())
+    if protocolo == 1: protocolo_str = "TCP"
+    elif protocolo == 2: protocolo_str = "UDP"
+    else: 
+        print("Opção não suportada")
+        return None, None
+
     print("""
     - - - - Selecione o tipo de transferência - - - -
     [1] Upload
@@ -25,20 +31,14 @@ def inicializa():
     """
     )
     transferencia = int(input())
-    print("    =================================================")
-
-    return (protocolo, transferencia)
-
-
-def confirma_infos(protocolo, transferencia):
-    if protocolo == 1: protocolo_str = "TCP"
-    else: protocolo_str = "UDP"
-    
     if transferencia == 1: transferencia_str = "Upload"
-    else: transferencia_str = "Download"
+    elif transferencia == 2: transferencia_str = "Download"
+    else: 
+        print("Opção não suportada")
+        return None, None
     
-    print(
-    f"""
+    print(f"""
+    =================================================
     - - - - - - Confirmação de Dados - - - - - -
     Protocolo de transferência: {protocolo_str}
     Tipo de tranferência: {transferencia_str}
@@ -46,8 +46,9 @@ def confirma_infos(protocolo, transferencia):
     Aperte Enter para confirmar ou Ctrl+C para reiniciar programa...
     """
     )
-    input()
+    input()    
 
+    return (protocolo, transferencia)
 
 
 def output_estatisticas(pacotes_enviados, pacotes_recebidos):
