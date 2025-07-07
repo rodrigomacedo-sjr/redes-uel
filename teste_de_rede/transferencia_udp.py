@@ -1,79 +1,114 @@
 import os
-from utils import criar_socket
-from config import MAX_TENTATIVAS
+from utils import criar_socket, aguardar_ack_udp, enviar_ack_udp
+from config import DURACAO_SEGUNDOS, MAX_TENTATIVAS, STRING_TESTE
 import time
 
 
-def transferir_dados():
-    """
-    1. enviar string com tamanho único de 500 bytes contendo "teste de rede *2025*"
-    2. inserir um contador de pacotes enviados
-    """
-    pass
-
-
-def enviar_pacotes(ip, porta, total):
+def enviar_pacotes(destinatario):
     """
     Envia uma quantidade 'total' de pacotes para o 'ip' e 'porta' especificados
 
-    Retorna um dicionário com estatísticas da transmissão.
+    Cada pacote tem 500 butes e contém a string "teste de rede *2025*"
+
+    Retorna um dicionário com estatísticas da transmissão
+
+    destinatario - tupla de ip & porta
     """
     sock = criar_socket("UDP")
-    retransmissoes = 0 
-    perdidos = 0 
+    retransmissoes = 0
+    perdidos = 0
 
     sock.bind(("", 0))
 
     inicio = time.perf_counter()
+    fim = time.perf_counter()
+    duracao = fim - inicio
 
-    for seq in range(1, total + 1):  # Loop para enviar cada um dos 'total' pacotes.
-        payload = os.urandom(50)  
-        dados = seq.to_bytes(4, "big") + payload
-        tentativas_reenvio = 0 
-        ack_recebido = False 
+    pacotes_enviados = 0
+    while duracao < DURACAO_SEGUNDOS:
+        pacotes_enviados += 1
 
-        while (
-            tentativas_reenvio < MAX_TENTATIVAS and not ack_recebido
-        ):  # Tenta MAX_TENTATIVAS vezes até receber ACK.
-            sock.sendto(dados, (ip, porta))
-            ack_recebido = aguardar_ack_udp(sock) 
+        payload = os.urandom(500 - len(STRING_TESTE) - 2)
+        dados = pacotes_enviados.to_bytes(4, "big") + STRING_TESTE.encode() + payload
+        tentativas_reenvio = 0
+        ack_recebido = False
+
+        while tentativas_reenvio < MAX_TENTATIVAS and not ack_recebido:
+            sock.sendto(dados, destinatario)
+            ack_recebido = aguardar_ack_udp(sock)
             if not ack_recebido:
                 tentativas_reenvio += 1
                 retransmissoes += 1
 
+        duracao = fim - inicio
+
         if not ack_recebido:
             perdidos += 1
 
-    fim = time.perf_counter()
+    dados_envio = """
+    {pacotes_enviados},
+    {retransmissoes},
+    {perdidos},
+    {tempo},
+    """.format(
+        pacotes_enviados, retransmissoes, perdidos, duracao
+    )
+    ack_recebido = False
+    while not ack_recebido:
+        sock.sendto("FIM".encode(), destinatario)
+        ack_recebido = aguardar_ack_udp(sock)
+        sock.sendto(dados_envio.encode(), destinatario)
+        ack_recebido = aguardar_ack_udp(sock)
+
     sock.close()
 
-    return { 
-        "quantidade_enviados": total,
-        "retransmissoes": retransmissoes,  # Total de retransmissões ocorridas (principalmente para UDP).
-        "perdidos": perdidos,  # Total de pacotes considerados perdidos (principalmente para UDP).
-        "tempo": fim - inicio,
+    return {
+        "quantidade_enviados": pacotes_enviados,
+        "retransmissoes": retransmissoes,
+        "perdidos": perdidos,
+        "tempo": duracao,
     }
 
 
-def receber_dados():
-    pass
-
-
-def avaliar_taxa_de_transferencia():
+def receber_pacotes(remetente):
     """
-    (coletar)
-    1. quantos pacotes enviados
-    2. quantos pacotes perdidos
-    3. quantos bytes enviados
-    4. qual a velocidade em Giga/mega/kilo/bit por segundo (separar milhar por ponto)
-    5. quantos pacotes por segundo
+    Recebe pacotes do remetente até receber um "FIM"
+
+    Retorna o número de pacotes únicos recebidos
     """
-    pass
+    sock = criar_socket("UDP")
+    recebidos = set()
 
+    sock.bind(remetente)
+    print(f"Servidor UDP escutando em {remetente[0]}:{remetente[1]}")
+    recv_sock = sock
 
-"""
-no final da comunicação
-    enviar dados de recebimento para o enviador (ou durante (ack)) 
-    enviar dados de envio para o recebedor
-    para os dois computadores conseguirem fazer as estatisticas
-"""
+    print(f"Aguardando pacotes...")
+    dados = ""
+    while True:
+        try:
+            data, addr = recv_sock.recvfrom(500)
+
+            seq = int.from_bytes(data[:4], "big")
+            recebidos.add(seq)
+
+            enviar_ack_udp(sock, addr, seq)
+
+            if data.decode("utf-8") == "FIM":
+                data, addr = recv_sock.recvfrom(500)
+
+            dados = data.decode("utf-8").split(",")
+
+        except Exception as e:
+            print(f"Erro ao receber pacote: {e}")
+            break
+
+    sock.close()
+
+    return {
+        "quantidade_recebidos": len(recebidos),
+        "quantidade_enviados": dados[0] or 0,
+        "retransmissoes": dados[1] or 0,
+        "perdidos": dados[2] or 0,
+        "tempo": dados[3] or 0,
+    }
