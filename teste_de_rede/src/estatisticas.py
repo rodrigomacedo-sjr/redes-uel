@@ -15,7 +15,7 @@ def calcula_bytes_enviados(pacotes):
 def calcula_velocidade(pacotes):
     """
     Calcula velocidade em Giga, Mega e Kilo bits
-    Retorna → tuple: (Kb, Mb, Gb)
+    Retorna -> tuple : (Kb, Mb, Gb)
     """
     
     bits = calcula_bytes_enviados(pacotes) * 8
@@ -27,5 +27,5 @@ def calcula_velocidade(pacotes):
     return {
         "Kb/s": Kb,
         "Mb/s": Mb,
-        "Gb/s": Gb,
+        "Gb/s": Gb
     }
