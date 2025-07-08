@@ -1,4 +1,5 @@
 import os
+import socket
 from utils import criar_socket
 from config import DURACAO_SEGUNDOS, STRING_TESTE, TAMANHO_BYTES
 import time
@@ -15,6 +16,7 @@ def enviar_pacotes(destinatario: tuple):
         Um dicionário com estatísticas da transmissão
     """
     sock = criar_socket("TCP")
+    sock.settimeout(30)  # Timeout de 30 segundos para conexão
     retransmissoes = 0
     perdidos = 0
 
@@ -22,8 +24,13 @@ def enviar_pacotes(destinatario: tuple):
         print(f"Conectando em {destinatario[0]}:{destinatario[1]}...")
         sock.connect(destinatario)
         print(f"Conectado! Iniciando envio de pacotes...")
+    except ConnectionRefusedError:
+        print(f"Erro: Conexão recusada. Verifique se o servidor está rodando em {destinatario[0]}:{destinatario[1]}")
+        sock.close()
+        return None
     except Exception as e:
         print(f"Erro na conexão: {e}")
+        sock.close()
         return None
 
     pacotes_enviados = 0
@@ -78,12 +85,29 @@ def receber_pacotes(remetente: tuple):
         Um dicionário com as estatísticas da recepção
     """
     sock = criar_socket("TCP")
-    sock.bind(remetente)
-    sock.listen(1)
-    print(f"Servidor TCP escutando em {remetente[0]}:{remetente[1]}")
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Permite reutilizar a porta
+    sock.settimeout(30)  # Timeout para operações de socket
+    
+    try:
+        sock.bind(remetente)
+        sock.listen(1)
+        print(f"Servidor TCP escutando em {remetente[0]}:{remetente[1]}")
+    except OSError as e:
+        print(f"Erro ao fazer bind na porta {remetente[1]}: {e}")
+        sock.close()
+        return None
 
-    conn, addr = sock.accept()
-    print(f"Conexão aceita de {addr[0]}:{addr[1]}")
+    try:
+        conn, addr = sock.accept()
+        print(f"Conexão aceita de {addr[0]}:{addr[1]}")
+    except socket.timeout:
+        print("Timeout: Nenhuma conexão recebida")
+        sock.close()
+        return None
+    except Exception as e:
+        print(f"Erro ao aceitar conexão: {e}")
+        sock.close()
+        return None
 
     try:
         recebidos = set()

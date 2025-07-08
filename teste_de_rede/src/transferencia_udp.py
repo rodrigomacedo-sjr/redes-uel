@@ -17,6 +17,7 @@ def enviar_pacotes(destinatario: tuple):
     """
     sock = criar_socket("UDP")
     sock.bind(("", 0))
+    sock.settimeout(1.0)  # Timeout para operações UDP
 
     retransmissoes = 0
     perdidos = 0
@@ -38,7 +39,6 @@ def enviar_pacotes(destinatario: tuple):
         ack_recebido = False
         tentativas_reenvio = 0
         while tentativas_reenvio < MAX_TENTATIVAS and not ack_recebido:
-            print(f"Enviando {dados} para {destinatario}")
             sock.sendto(dados, destinatario)
             ack_recebido = aguardar_ack_udp(sock)
             if not ack_recebido:
@@ -96,8 +96,15 @@ def receber_pacotes(remetente: tuple):
     Retorna um dicionário com as estatísticas da recepção
     """
     sock = criar_socket("UDP")
-    sock.bind(remetente)
-    print(f"Servidor UDP escutando em {remetente[0]}:{remetente[1]}")
+    sock.settimeout(30.0)  # Timeout para recepção UDP
+    
+    try:
+        sock.bind(remetente)
+        print(f"Servidor UDP escutando em {remetente[0]}:{remetente[1]}")
+    except OSError as e:
+        print(f"Erro ao fazer bind na porta {remetente[1]}: {e}")
+        sock.close()
+        return None
 
     recebidos = set()
     stats_final_bytes = b""
