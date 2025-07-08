@@ -27,10 +27,5 @@ def calcula_velocidade(pacotes):
     return {
         "Kb/s": Kb,
         "Mb/s": Mb,
-<<<<<<< HEAD
-        "Gb/s": Gb,
-    }
-=======
         "Gb/s": Gb
     }
->>>>>>> prs-develop
