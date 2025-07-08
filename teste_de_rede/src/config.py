@@ -1,8 +1,7 @@
 # MUTÁVEIS
-IP_ENVIO = "192.152.337"
-PORT_ENVIO = "1337"
-IP_RECEBIMENTO = "__"
-PORT_RECEBIMENTO = "__"
+# Cada um edita as variáveis colocando o ip e porta da outra pessoa
+IP_CONEXAO = "192.152.337"
+PORT_CONEXAO = "1337"
 
 # IMUTÁVEIS
 DURACAO_SEGUNDOS = 20
