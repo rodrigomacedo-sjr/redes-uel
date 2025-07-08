@@ -87,7 +87,7 @@ def receber_pacotes(remetente):
     dados = ""
     while True:
         try:
-            data, addr = recv_sock.recvfrom(500)
+            data, addr = recv_sock.recv(500)
 
             seq = int.from_bytes(data[:4], "big")
             recebidos.add(seq)
@@ -95,7 +95,7 @@ def receber_pacotes(remetente):
             enviar_ack_udp(sock, addr, seq)
 
             if data.decode("utf-8") == "FIM":
-                data, addr = recv_sock.recvfrom(500)
+                data, addr = recv_sock.recv(500)
 
             dados = data.decode("utf-8").split(",")
 

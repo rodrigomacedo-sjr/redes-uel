@@ -69,49 +69,53 @@ def enviar_pacotes(destinatario):
 
 
 def receber_pacotes(remetente: tuple):
-    """
-    Recebe pacotes do remetente até receber um "FIM"
-
-    Retorna o número de pacotes únicos recebidos
-    """
     sock = criar_socket("TCP")
     recebidos = set()
-
-
     sock.bind(remetente)
     sock.listen(1)
     print(f"Servidor TCP escutando em {remetente[0]}:{remetente[1]}")
-    conn, _ = sock.accept()
-    recv_sock = conn
+    conn, addr = sock.accept()
+    print(f"Conexão aceita de {addr}")
 
-    print(f"Aguardando pacotes...")
-    dados = ""
+    dados_finais = []
     while True:
         try:
-            data, addr = recv_sock.recvfrom(500)
+            # 1. Usar conn.recv() que é o correto para TCP
+            data = conn.recv(500)
 
+            # 2. Se recv retornar vazio, o cliente desconectou
+            if not data:
+                print("Cliente desconectou.")
+                break
+
+            # 3. Verificar se é a mensagem de controle "FIM"
+            if data == "FIM":
+                print("Recebido sinal de FIM. Aguardando estatísticas...")
+                # Recebe o próximo pacote que deve conter as estatísticas
+                stats_data = conn.recv(500)
+                dados_finais = stats_data.decode("utf-8").split(",")
+                break  # Sai do loop principal após receber as estatísticas
+
+            # Se não for FIM, é um pacote de dados normal
             seq = int.from_bytes(data[:4], "big")
             recebidos.add(seq)
-
-            enviar_ack_udp(sock, addr, seq)
-
-            if data.decode("utf-8") == "FIM":
-                data, addr = recv_sock.recvfrom(500)
-
-            dados = data.decode("utf-8").split(",")
+            # 4. Não precisa enviar ACK manual em TCP
 
         except Exception as e:
-            print(f"Erro ao receber pacote: {e}")
+            print(f"Erro durante a recepção: {e}")
             break
 
-    if 'conn' in locals():
-        conn.close()
+    conn.close()
     sock.close()
+
+    # Proteção contra o IndexError caso algo dê errado
+    if len(dados_finais) < 4:
+        dados_finais = [0, 0, 0, 0.0]
 
     return {
         "quantidade_recebidos": len(recebidos),
-        "quantidade_enviados": dados[0] or 0,
-        "retransmissoes": dados[1] or 0,
-        "perdidos": dados[2] or 0,
-        "tempo": dados[3] or 0,
+        "quantidade_enviados": int(dados_finais[0]),
+        "retransmissoes": int(dados_finais[1]),
+        "perdidos": int(dados_finais[2]),
+        "tempo": float(dados_finais[3]),
     }
