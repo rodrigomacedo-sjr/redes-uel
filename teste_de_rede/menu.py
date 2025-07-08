@@ -51,7 +51,7 @@ def inicializa():
     return (protocolo, transferencia)
 
 
-def output_estatisticas(pacotes_enviados, pacotes_recebidos):
+def output_estatisticas(pacotes, perdidos):
     """
     Printa os resultados do teste de tranferência.
         - Pacotes enviados: número de pacotes enviados na transferência, passado como parâmetro
@@ -62,22 +62,22 @@ def output_estatisticas(pacotes_enviados, pacotes_recebidos):
     Retorna os dois valores como int.
     """
 
-    velocidades = estatisticas.calcula_velocidade(pacotes_recebidos)
+    velocidades = estatisticas.calcula_velocidade(pacotes)
     print(
     f"""
     ================ ESTATÍSTICAS ===================
-    PACOTES ENVIADOS: {pacotes_enviados}
+    PACOTES ENVIADOS: {pacotes}
     - - - - - - - - - - - - - - - - - - - - - - - - -
-    PACOTES PERDIDOS: {pacotes_recebidos}
+    PACOTES PERDIDOS: {perdidos}
     - - - - - - - - - - - - - - - - - - - - - - - - -
-    BYTES ENVIADOS: {estatisticas.calcula_bytes_enviados(pacotes_enviados)} B
+    BYTES ENVIADOS: {estatisticas.calcula_bytes_enviados(pacotes)} B
     - - - - - - - - - - - - - - - - - - - - - - - - -
     VELOCIDADE (Kb, Mb, Gb):
         > {str(velocidades[0]).replace('.', ',')} Kb/s
         > {str(velocidades[1]).replace('.', ',')} Mb/s
         > {str(velocidades[2]).replace('.', ',')} Gb/s
     - - - - - - - - - - - - - - - - - - - - - - - - -
-    PACOTES/SEGUNDO: {estatisticas.calcula_pacotes_segundo(pacotes_recebidos)}
+    PACOTES/SEGUNDO: {estatisticas.calcula_pacotes_segundo(pacotes)}
     =================================================
     """
     )
