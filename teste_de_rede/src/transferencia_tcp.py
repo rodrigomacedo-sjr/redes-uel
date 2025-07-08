@@ -142,9 +142,11 @@ def receber_pacotes(remetente: tuple):
         sock.close()
         print("Conexão fechada.")
 
-    if len(stats) >= 2:
+    if len(stats) >= 4:
         enviados = int(stats[0])
-        tempo = float(stats[1])
+        retransmissoes = int(stats[1])
+        perdidos_remetente = int(stats[2])
+        tempo = float(stats[3])
         perdidos = enviados - len(recebidos)
     else:
         print(

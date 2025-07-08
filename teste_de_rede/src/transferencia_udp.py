@@ -22,6 +22,8 @@ def enviar_pacotes(destinatario: tuple):
     perdidos = 0
     pacotes_enviados = 0
 
+    print("Iniciando envio de pacotes...")
+
     inicio = time.perf_counter()
     while (time.perf_counter() - inicio) < DURACAO_SEGUNDOS:
         pacotes_enviados += 1
@@ -36,6 +38,7 @@ def enviar_pacotes(destinatario: tuple):
         ack_recebido = False
         tentativas_reenvio = 0
         while tentativas_reenvio < MAX_TENTATIVAS and not ack_recebido:
+            print(f"Enviando {dados} para {destinatario}")
             sock.sendto(dados, destinatario)
             ack_recebido = aguardar_ack_udp(sock)
             if not ack_recebido:
@@ -128,7 +131,7 @@ def receber_pacotes(remetente: tuple):
         print("Aguardando estatísticas finais...")
         try:
             stats_final_bytes, addr = sock.recvfrom(1024)
-            enviar_ack_udp(sock, addr)
+            enviar_ack_udp(sock, addr, 0)
         except Exception as e:
             print(f"Erro ao receber estatísticas: {e}")
 
