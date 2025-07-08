@@ -1,7 +1,9 @@
 # MUTÁVEIS
-# Cada um edita as variáveis colocando o ip e porta da outra pessoa
-IP_CONEXAO = "192.152.337"
-PORT_CONEXAO = 1337
+IP_CONEXAO = "192.168.191.120"
+PORT_CONEXAO = 8080
+IP_LOCAL = "0.0.0.0"  
+PORT_LOCAL = 8081    
+
 
 # IMUTÁVEIS
 DURACAO_SEGUNDOS = 20

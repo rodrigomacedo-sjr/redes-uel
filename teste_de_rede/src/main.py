@@ -1,7 +1,7 @@
 import menu
 import transferencia_tcp
 import transferencia_udp
-from config import IP_CONEXAO, PORT_CONEXAO
+from config import IP_CONEXAO, PORT_CONEXAO, IP_LOCAL, PORT_LOCAL
 
 def main():
     """
@@ -16,18 +16,26 @@ def main():
     if prot == 1: # TCP
         if tipo_transf == 1: # Upload
             destinatario = (IP_CONEXAO, PORT_CONEXAO)
-            pc_enviados, retransmissoes, perdidos, tempo = transferencia_tcp.enviar_pacotes(destinatario)
+            resultado = transferencia_tcp.enviar_pacotes(destinatario)
+            pc_enviados = resultado["quantidade_enviados"]
+            perdidos = resultado["perdidos"]
         else: # Download
-            destinatario = (IP_CONEXAO, PORT_CONEXAO)
-            pc_recebidos, pc_enviados, retransmissoes, perdidos, tempo = transferencia_tcp.receber_pacotes(destinatario)
+            servidor = (IP_LOCAL, PORT_LOCAL)
+            resultado = transferencia_tcp.receber_pacotes(servidor)
+            pc_enviados = resultado["quantidade_enviados"]
+            perdidos = resultado["perdidos"]
     
     else: # UDP
         if tipo_transf == 1: # Upload
             destinatario = (IP_CONEXAO, PORT_CONEXAO)
-            pc_enviados, retransmissoes, perdidos, tempo = transferencia_udp.enviar_pacotes(destinatario)
+            resultado = transferencia_udp.enviar_pacotes(destinatario)
+            pc_enviados = resultado["quantidade_enviados"]
+            perdidos = resultado["perdidos"]
         else: # Download
-            destinatario = (IP_CONEXAO, PORT_CONEXAO)
-            pc_recebidos, pc_enviados, retransmissoes, perdidos, tempo = transferencia_udp.receber_pacotes(destinatario)
+            servidor = (IP_LOCAL, PORT_LOCAL)
+            resultado = transferencia_udp.receber_pacotes(servidor)
+            pc_enviados = resultado["quantidade_enviados"]
+            perdidos = resultado.get("perdidos_calculado", resultado.get("perdidos", 0))
 
     menu.output_estatisticas(pc_enviados, perdidos)
 
