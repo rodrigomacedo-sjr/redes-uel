@@ -1,64 +1,63 @@
 import os
-from utils import criar_socket, aguardar_ack_udp, enviar_ack_udp
-from config import DURACAO_SEGUNDOS, MAX_TENTATIVAS, STRING_TESTE
+from utils import criar_socket
+from config import DURACAO_SEGUNDOS, STRING_TESTE, TAMANHO_BYTES
 import time
 
 
-def enviar_pacotes(destinatario):
+def enviar_pacotes(destinatario: tuple):
     """
-    Envia uma quantidade 'total' de pacotes para o 'ip' e 'porta' especificados
+    Envia pacotes para o destinatário usando TCP por um tempo determinado
 
-    Cada pacote tem 500 butes e contém a string "teste de rede *2025*"
+    Argumentos:
+        destinatario (tuple): ip, port
 
-    Retorna um dicionário com estatísticas da transmissão
-
-    destinatario - tupla de ip & porta
+    Retorna:
+        Um dicionário com estatísticas da transmissão
     """
     sock = criar_socket("TCP")
     retransmissoes = 0
     perdidos = 0
 
-    sock.connect(destinatario)
-
-    inicio = time.perf_counter()
-    fim = time.perf_counter()
-    duracao = fim - inicio
+    try:
+        print(f"Conectando em {destinatario[0]}:{destinatario[1]}...")
+        sock.connect(destinatario)
+        print(f"Conectado! Iniciando envio de pacotes...")
+    except Exception as e:
+        print(f"Erro na conexão: {e}")
+        return None
 
     pacotes_enviados = 0
-    while duracao < DURACAO_SEGUNDOS:
+
+    inicio = time.perf_counter()
+
+    while (time.perf_counter() - inicio) < DURACAO_SEGUNDOS:
         pacotes_enviados += 1
 
-        payload = os.urandom(500 - len(STRING_TESTE) - 2)
-        dados = pacotes_enviados.to_bytes(4, "big") + STRING_TESTE.encode() + payload
-        tentativas_reenvio = 0
-        ack_recebido = False
+        sequecia_bytes = pacotes_enviados.to_bytes(4, "big")
+        string_bytes = STRING_TESTE.encode()
+        tamanho_payload = TAMANHO_BYTES - len(sequecia_bytes) - len(string_bytes)
+        payload = os.urandom(tamanho_payload)
+        dados = sequecia_bytes + string_bytes + payload
 
-        while tentativas_reenvio < MAX_TENTATIVAS and not ack_recebido:
-            sock.send(dados)
-            ack_recebido = True
-            if not ack_recebido:
-                tentativas_reenvio += 1
-                retransmissoes += 1
+        try:
+            sock.sendall(dados)
+        except Exception as e:
+            print(f"Erro ao enviar dados: {e}")
+            break
 
-        duracao = fim - inicio
+    duracao = time.perf_counter() - inicio
+    dados_envio = f"{pacotes_enviados}, {retransmissoes}, {perdidos}, {duracao},"
 
-        if not ack_recebido:
-            perdidos += 1
-
-    dados_envio = """
-    {pacotes_enviados},
-    {retransmissoes},
-    {perdidos},
-    {tempo},
-    """.format(
-        pacotes_enviados, retransmissoes, perdidos, duracao
-    )
-    ack_recebido = False
-    while not ack_recebido:
-        sock.send("FIM".encode())
-        sock.send(dados_envio.encode())
+    try:
+        sock.sendall(b"FIM")
+        time.sleep(0.1)
+        print(f"Enviando estatisticas de envio...")
+        sock.sendall(dados_envio.encode())
+    except Exception as e:
+        print(f"Erro ao finalizar: {e}")
 
     sock.close()
+    print("Conexão fechada.")
 
     return {
         "quantidade_enviados": pacotes_enviados,
@@ -72,46 +71,93 @@ def receber_pacotes(remetente: tuple):
     """
     Recebe pacotes do remetente até receber um "FIM"
 
-    Retorna o número de pacotes únicos recebidos
+    Argumentos:
+        remetente (tuple): ip, port
+
+    Retorna:
+        Um dicionário com as estatísticas da recepção
     """
     sock = criar_socket("TCP")
-    recebidos = set()
-
-
     sock.bind(remetente)
     sock.listen(1)
     print(f"Servidor TCP escutando em {remetente[0]}:{remetente[1]}")
-    conn, _ = sock.accept()
-    recv_sock = conn
 
-    print(f"Aguardando pacotes...")
-    dados = ""
-    while True:
-        try:
-            data, addr = recv_sock.recvfrom(500)
+    conn, addr = sock.accept()
+    print(f"Conexão aceita de {addr[0]}:{addr[1]}")
 
-            seq = int.from_bytes(data[:4], "big")
+    try:
+        recebidos = set()
+        stats = []
+
+        # Lógica de buffer para lidar com TCP
+        # Garante que pacotes sejam processados corretamente, mesmo em pedaços
+        buffer = b""
+        stats_bruto = b""
+        fim_recebido = False
+
+        print(f"Aguardando pacotes...")
+        while not fim_recebido:
+            # 1. Processa o que já está no buffer
+            while len(buffer) >= TAMANHO_BYTES:
+                pacote = buffer[:TAMANHO_BYTES]
+                buffer = buffer[TAMANHO_BYTES:]
+
+                seq = int.from_bytes(pacote[:4], "big")
+                recebidos.add(seq)
+
+            # 2. Lê mais dados da rede
+            dados = conn.recv(4096)  # Lê em chunks maiores para eficiência
+            if not dados:
+                print("Conexão fechada inesperadamente.")
+                break
+
+            buffer += dados
+
+            # 3. Verifica se o sinal de FIM chegou
+            if b"FIM" in buffer:
+                print("Sinal de finalização recebido")
+                # Separa o que veio antes do FIM do que veio depois (as estatísticas)
+                partes = buffer.split(b"FIM", 1)
+                buffer = partes[0]  # Processa o resto dos pacotes
+                stats_bruto = partes[1]
+                fim_recebido = True
+
+        # Processa qualquer pacote restante que ficou no buffer antes do "FIM"
+        while len(buffer) >= TAMANHO_BYTES:
+            pacote = buffer[:TAMANHO_BYTES]
+            buffer = buffer[TAMANHO_BYTES:]
+            seq = int.from_bytes(pacote[:4], "big")
             recebidos.add(seq)
 
-            enviar_ack_udp(sock, addr, seq)
+        stats_bruto += conn.recv(1024)
+        stats_decodificado = stats_bruto.strip().decode()
+        if stats_decodificado:
+            stats = stats_decodificado.split(",")
 
-            if data.decode("utf-8") == "FIM":
-                data, addr = recv_sock.recvfrom(500)
+    except Exception as e:
+        print(f"Ocorreu um erro durante a recepção: {e}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+        sock.close()
+        print("Conexão fechada.")
 
-            dados = data.decode("utf-8").split(",")
-
-        except Exception as e:
-            print(f"Erro ao receber pacote: {e}")
-            break
-
-    if 'conn' in locals():
-        conn.close()
-    sock.close()
+    if len(stats) >= 2:
+        enviados = int(stats[0])
+        tempo = float(stats[1])
+        perdidos = enviados - len(recebidos)
+    else:
+        print(
+            "Erro no recebimento das estatísticas ou conexão encerrada prematuramente."
+        )
+        enviados = 0
+        tempo = 0
+        perdidos = 0
 
     return {
         "quantidade_recebidos": len(recebidos),
-        "quantidade_enviados": dados[0] or 0,
-        "retransmissoes": dados[1] or 0,
-        "perdidos": dados[2] or 0,
-        "tempo": dados[3] or 0,
+        "quantidade_enviados": enviados,
+        "retransmissoes": 0,  # Métrica não calculada aqui
+        "perdidos": perdidos,
+        "tempo": tempo,
     }
