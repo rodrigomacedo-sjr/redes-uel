@@ -8,12 +8,8 @@ def enviar_pacotes(destinatario: tuple):
     """
     Envia pacotes para o destinatário usando TCP por um tempo determinado
 
-<<<<<<< HEAD
     Argumentos:
         destinatario (tuple): ip, port
-=======
-    Cada pacote tem 500 bytes e contém a string "teste de rede *2025*"
->>>>>>> prs-develop
 
     Retorna:
         Um dicionário com estatísticas da transmissão
