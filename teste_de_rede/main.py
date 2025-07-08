@@ -1,6 +1,4 @@
 import menu
-import enviar
-import receber
 
 def main():
     """
