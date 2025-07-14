@@ -125,10 +125,39 @@ def receber_pacotes(remetente: tuple):
                 break
 
             try:
+                # Primeiro tenta decodificar para ver se são estatísticas
+                data_str = data.decode('utf-8')
+                # Verifica se é uma string de estatísticas válida
+                if ',' in data_str:
+                    partes = data_str.split(',')
+                    if len(partes) >= 4:
+                        try:
+                            # Tenta converter para números para validar o formato
+                            int(partes[0])  # pacotes
+                            int(partes[1])  # retransmissões  
+                            int(partes[2])  # perdidos
+                            float(partes[3])  # tempo
+                            # Se chegou aqui, são estatísticas válidas
+                            print("Estatísticas finais recebidas.")
+                            stats_final_bytes = data
+                            enviar_ack_udp(sock, addr, 0)
+                            break
+                        except (ValueError, IndexError):
+                            # Não conseguiu converter, não são estatísticas
+                            pass
+                
+                # Se chegou aqui, não são estatísticas, tenta processar como pacote normal
                 seq = int.from_bytes(data[:4], "big")
                 recebidos.add(seq)
                 enviar_ack_udp(sock, addr, seq)
-
+            except UnicodeDecodeError:
+                # Dados binários - é um pacote normal
+                try:
+                    seq = int.from_bytes(data[:4], "big")
+                    recebidos.add(seq)
+                    enviar_ack_udp(sock, addr, seq)
+                except (ValueError, IndexError):
+                    print("Pacote com formato inválido recebido, ignorando.")
             except (ValueError, IndexError):
                 print("Enviando ACK e finalizando.")
                 stats_final_bytes = data
@@ -156,28 +185,42 @@ def receber_pacotes(remetente: tuple):
     stats_final = {}
     if stats_final_bytes:
         try:
-            stats_str = stats_final_bytes.decode()
-            dados = stats_str.split(",")
-            if len(dados) >= 4:
-                stats_final = {
-                    "quantidade_enviados": int(dados[0]),
-                    "retransmissoes": int(dados[1]),
-                    "perdidos_remetente": int(dados[2]),
-                    "tempo": float(dados[3]),
-                }
-            else:
-                raise ValueError("Formato de estatísticas inválido")
-        except (ValueError, IndexError, UnicodeDecodeError) as e:
+            # Tenta diferentes codificações se UTF-8 falhar
+            try:
+                stats_str = stats_final_bytes.decode('utf-8')
+            except UnicodeDecodeError:
+                try:
+                    stats_str = stats_final_bytes.decode('latin1')
+                except UnicodeDecodeError:
+                    print("Erro: não foi possível decodificar as estatísticas")
+                    stats_str = ""
+            
+            if stats_str:
+                dados = stats_str.split(",")
+                if len(dados) >= 4:
+                    stats_final = {
+                        "quantidade_enviados": int(dados[0]),
+                        "retransmissoes": int(dados[1]),
+                        "perdidos_remetente": int(dados[2]),
+                        "tempo": float(dados[3]),
+                    }
+                else:
+                    raise ValueError("Formato de estatísticas inválido")
+        except (ValueError, IndexError) as e:
             print(f"Erro ao decodificar estatísticas: {e}")
             stats_final = {}
 
     perdidos_receptor = stats_final.get("quantidade_enviados", 0) - len(recebidos)
+
+    # Garante que o tempo nunca seja zero para evitar divisão por zero
+    tempo_recepcao_final = max(tempo_recepcao, 0.001)  # Mínimo de 1ms
+    tempo_envio_final = max(stats_final.get("tempo", 0), 0.001)  # Mínimo de 1ms
 
     return {
         "quantidade_recebidos": len(recebidos),
         "quantidade_enviados": stats_final.get("quantidade_enviados", 0),
         "retransmissoes_remetente": stats_final.get("retransmissoes", 0),
         "perdidos": perdidos_receptor,
-        "tempo": tempo_recepcao,  
-        "tempo_envio": stats_final.get("tempo", 0), 
+        "tempo": tempo_recepcao_final,  
+        "tempo_envio": tempo_envio_final, 
     }
