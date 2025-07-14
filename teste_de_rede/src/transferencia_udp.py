@@ -178,6 +178,6 @@ def receber_pacotes(remetente: tuple):
         "quantidade_enviados": stats_final.get("quantidade_enviados", 0),
         "retransmissoes_remetente": stats_final.get("retransmissoes", 0),
         "perdidos": perdidos_receptor,
-        "tempo": tempo_recepcao,  # Usa o tempo de recepção medido localmente
-        "tempo_envio": stats_final.get("tempo", 0),  # Tempo de envio recebido do remetente
+        "tempo": tempo_recepcao,  
+        "tempo_envio": stats_final.get("tempo", 0), 
     }

@@ -58,10 +58,8 @@ def enviar_pacotes(destinatario: tuple):
     dados_envio = f"{pacotes_enviados}, {retransmissoes}, {perdidos}, {duracao},"
 
     try:
-        sock.sendall(b"FIM")
-        time.sleep(0.1)
-        print(f"Enviando estatisticas de envio...")
-        sock.sendall(dados_envio.encode())
+        print(f"Enviando sinal de fim e estatisticas...")
+        sock.sendall(b"FIM" + dados_envio.encode())
     except Exception as e:
         print(f"Erro ao finalizar: {e}")
 
@@ -147,7 +145,7 @@ def receber_pacotes(remetente: tuple):
                 # Separa o que veio antes do FIM do que veio depois (as estatísticas)
                 partes = buffer.split(b"FIM", 1)
                 buffer = partes[0]  # Processa o resto dos pacotes
-                stats_bruto = partes[1]
+                stats_bruto = partes[1]  # As estatísticas já estão aqui
                 fim_recebido = True
 
         # Processa qualquer pacote restante que ficou no buffer antes do "FIM"
@@ -157,7 +155,15 @@ def receber_pacotes(remetente: tuple):
             seq = int.from_bytes(pacote[:4], "big")
             recebidos.add(seq)
 
-        stats_bruto += conn.recv(1024)
+        # Se não há dados suficientes no stats_bruto, tenta ler mais uma vez
+        if len(stats_bruto) < 10:  # Tamanho mínimo esperado para as estatísticas
+            try:
+                dados_adicionais = conn.recv(1024)
+                if dados_adicionais:
+                    stats_bruto += dados_adicionais
+            except:
+                pass  # Ignora erros na leitura adicional
+        
         stats_decodificado = stats_bruto.strip().decode()
         if stats_decodificado:
             stats = stats_decodificado.split(",")
