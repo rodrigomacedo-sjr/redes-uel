@@ -75,9 +75,9 @@ def output_estatisticas(pacotes, perdidos, tempo):
     pacotes_por_segundo = pacotes / tempo
     
     # Formata valores
-    pacotes_formatado = utils.formatar_numero(pacotes, 0)
-    perdidos_formatado = utils.formatar_numero(perdidos, 0)
-    bytes_formatado = utils.formatar_numero(bytes_enviados, 0)
+    pacotes_formatado = utils.formatar_numero(pacotes, 4)
+    perdidos_formatado = utils.formatar_numero(perdidos, 4)
+    bytes_formatado = utils.formatar_numero(bytes_enviados, 4)
     velocidades_formatadas = utils.formatar_velocidades(velocidades)
     pacotes_segundo_formatado = utils.formatar_numero(pacotes_por_segundo)
     
