@@ -36,8 +36,9 @@ def enviar_pacotes(destinatario: tuple):
     pacotes_enviados = 0
 
     inicio = time.perf_counter()
+    tempo_limite = inicio + DURACAO_SEGUNDOS
 
-    while (time.perf_counter() - inicio) < DURACAO_SEGUNDOS:
+    while time.perf_counter() < tempo_limite:
         pacotes_enviados += 1
 
         sequecia_bytes = pacotes_enviados.to_bytes(4, "big")
@@ -52,7 +53,8 @@ def enviar_pacotes(destinatario: tuple):
             print(f"Erro ao enviar dados: {e}")
             break
 
-    duracao = time.perf_counter() - inicio
+    fim_envio = time.perf_counter()
+    duracao = fim_envio - inicio
     dados_envio = f"{pacotes_enviados}, {retransmissoes}, {perdidos}, {duracao},"
 
     try:
@@ -120,6 +122,8 @@ def receber_pacotes(remetente: tuple):
         fim_recebido = False
 
         print(f"Aguardando pacotes...")
+        inicio_recepcao = time.perf_counter()  # Marca o início da recepção
+        
         while not fim_recebido:
             # 1. Processa o que já está no buffer
             while len(buffer) >= TAMANHO_BYTES:
@@ -158,8 +162,12 @@ def receber_pacotes(remetente: tuple):
         if stats_decodificado:
             stats = stats_decodificado.split(",")
 
+        fim_recepcao = time.perf_counter()  # Marca o fim da recepção
+        tempo_recepcao = fim_recepcao - inicio_recepcao  # Calcula o tempo total de recepção
+
     except Exception as e:
         print(f"Ocorreu um erro durante a recepção: {e}")
+        tempo_recepcao = 0  # Em caso de erro, define tempo como 0
     finally:
         if "conn" in locals():
             conn.close()
@@ -170,20 +178,22 @@ def receber_pacotes(remetente: tuple):
         enviados = int(stats[0])
         retransmissoes = int(stats[1])
         perdidos_remetente = int(stats[2])
-        tempo = float(stats[3])
+        tempo_envio = float(stats[3])  # Tempo do remetente
         perdidos = enviados - len(recebidos)
     else:
         print(
             "Erro no recebimento das estatísticas ou conexão encerrada prematuramente."
         )
         enviados = 0
-        tempo = 0
+        tempo_envio = 0
         perdidos = 0
+        tempo_recepcao = 0
 
     return {
         "quantidade_recebidos": len(recebidos),
         "quantidade_enviados": enviados,
         "retransmissoes": 0,  # Métrica não calculada aqui
         "perdidos": perdidos,
-        "tempo": tempo,
+        "tempo": tempo_recepcao,  # Usa o tempo de recepção medido localmente
+        "tempo_envio": tempo_envio,  # Tempo de envio recebido do remetente
     }

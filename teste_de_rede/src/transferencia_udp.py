@@ -26,7 +26,9 @@ def enviar_pacotes(destinatario: tuple):
     print("Iniciando envio de pacotes...")
 
     inicio = time.perf_counter()
-    while (time.perf_counter() - inicio) < DURACAO_SEGUNDOS:
+    tempo_limite = inicio + DURACAO_SEGUNDOS
+    
+    while time.perf_counter() < tempo_limite:
         pacotes_enviados += 1
 
         header_size = 4 + len(STRING_TESTE.encode())
@@ -52,7 +54,8 @@ def enviar_pacotes(destinatario: tuple):
             )
             perdidos += 1
 
-    duracao = time.perf_counter() - inicio
+    fim_envio = time.perf_counter()
+    duracao = fim_envio - inicio
     print("Tempo esgotado. Enviando sinal de finalização...")
 
     # Lógica de "FIM"
@@ -110,6 +113,8 @@ def receber_pacotes(remetente: tuple):
     stats_final_bytes = b""
 
     print("Aguardando pacotes...")
+    inicio_recepcao = time.perf_counter()  # Marca o início da recepção
+    
     while True:
         try:
             data, addr = sock.recvfrom(1024)
@@ -142,6 +147,9 @@ def receber_pacotes(remetente: tuple):
         except Exception as e:
             print(f"Erro ao receber estatísticas: {e}")
 
+    fim_recepcao = time.perf_counter()  # Marca o fim da recepção
+    tempo_recepcao = fim_recepcao - inicio_recepcao  # Calcula o tempo total de recepção
+
     sock.close()
     print("Conexão fechada.")
 
@@ -170,5 +178,6 @@ def receber_pacotes(remetente: tuple):
         "quantidade_enviados": stats_final.get("quantidade_enviados", 0),
         "retransmissoes_remetente": stats_final.get("retransmissoes", 0),
         "perdidos": perdidos_receptor,
-        "tempo": stats_final.get("tempo", 0),
+        "tempo": tempo_recepcao,  # Usa o tempo de recepção medido localmente
+        "tempo_envio": stats_final.get("tempo", 0),  # Tempo de envio recebido do remetente
     }
