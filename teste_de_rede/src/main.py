@@ -37,7 +37,7 @@ def main():
             pc_enviados = resultado["quantidade_enviados"]
             perdidos = resultado.get("perdidos_calculado", resultado.get("perdidos", 0))
 
-    menu.output_estatisticas(pc_enviados, perdidos)
+    menu.output_estatisticas(pc_enviados, perdidos, resultado.get("tempo", 20))
 
 if __name__ == "__main__":
     main()

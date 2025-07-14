@@ -1,4 +1,5 @@
 import estatisticas
+import utils
 
 
 def inicializa():
@@ -10,7 +11,7 @@ def inicializa():
     """
 
     print(
-    """
+        """
     ========== INICIALIZANDO TESTE DE REDE ==========
     - - - Selecione o protocolo de transferência - - -
     [1] TCP
@@ -18,26 +19,32 @@ def inicializa():
     """
     )
     protocolo = int(input())
-    if protocolo == 1: protocolo_str = "TCP"
-    elif protocolo == 2: protocolo_str = "UDP"
-    else: 
+    if protocolo == 1:
+        protocolo_str = "TCP"
+    elif protocolo == 2:
+        protocolo_str = "UDP"
+    else:
         print("Opção não suportada")
         return None, None
 
-    print("""
+    print(
+        """
     - - - - Selecione o tipo de transferência - - - -
     [1] Upload
     [2] Download
     """
     )
     transferencia = int(input())
-    if transferencia == 1: transferencia_str = "Upload"
-    elif transferencia == 2: transferencia_str = "Download"
-    else: 
+    if transferencia == 1:
+        transferencia_str = "Upload"
+    elif transferencia == 2:
+        transferencia_str = "Download"
+    else:
         print("Opção não suportada")
         return None, None
-    
-    print(f"""
+
+    print(
+        f"""
     =================================================
     - - - - - - Confirmação de Dados - - - - - -
     Protocolo de transferência: {protocolo_str}
@@ -46,43 +53,55 @@ def inicializa():
     Aperte Enter para confirmar ou Ctrl+C para reiniciar programa...
     """
     )
-    input()    
+    input()
 
     return (protocolo, transferencia)
 
 
-def output_estatisticas(pacotes, perdidos):
+def output_estatisticas(pacotes, perdidos, tempo):
     """
     Printa os resultados do teste de tranferência.
         - Pacotes enviados: número de pacotes enviados na transferência, passado como parâmetro
         - Pacotes recebidos: número de pacotes recebidos na transferência, passado como parâmetro
         - Bytes enviados: quantidade de bytes enviados
         - Velocidade: velocidade da tranferência, em Kb, Mb e Gb por segundo
-        - Pacotes/segundo: velocidade de pacotes por segundo 
+        - Pacotes/segundo: velocidade de pacotes por segundo
     Retorna os dois valores como int.
     """
 
-    velocidades = estatisticas.calcula_velocidade(pacotes)
+    # Calcula valores
+    velocidades = estatisticas.calcula_velocidade(pacotes, tempo)
+    bytes_enviados = estatisticas.calcula_bytes_enviados(pacotes)
+    pacotes_por_segundo = pacotes / tempo
+    
+    # Formata valores
+    pacotes_formatado = utils.formatar_numero(pacotes, 0)
+    perdidos_formatado = utils.formatar_numero(perdidos, 0)
+    bytes_formatado = utils.formatar_numero(bytes_enviados, 0)
+    velocidades_formatadas = utils.formatar_velocidades(velocidades)
+    pacotes_segundo_formatado = utils.formatar_numero(pacotes_por_segundo)
+    
     print(
-    f"""
+        f"""
     ================ ESTATÍSTICAS ===================
-    PACOTES ENVIADOS: {pacotes}
+    PACOTES ENVIADOS: {pacotes_formatado}
     - - - - - - - - - - - - - - - - - - - - - - - - -
-    PACOTES PERDIDOS: {perdidos}
+    PACOTES PERDIDOS: {perdidos_formatado}
     - - - - - - - - - - - - - - - - - - - - - - - - -
-    BYTES ENVIADOS: {estatisticas.calcula_bytes_enviados(pacotes)} B
+    BYTES ENVIADOS: {bytes_formatado} B
     - - - - - - - - - - - - - - - - - - - - - - - - -
     VELOCIDADE (Kb, Mb, Gb):
-        > {str(velocidades[0]).replace('.', ',')} Kb/s
-        > {str(velocidades[1]).replace('.', ',')} Mb/s
-        > {str(velocidades[2]).replace('.', ',')} Gb/s
+        > {velocidades_formatadas["Kb/s"]} Kb/s
+        > {velocidades_formatadas["Mb/s"]} Mb/s
+        > {velocidades_formatadas["Gb/s"]} Gb/s
     - - - - - - - - - - - - - - - - - - - - - - - - -
-    PACOTES/SEGUNDO: {estatisticas.calcula_pacotes_segundo(pacotes)}
+    PACOTES/SEGUNDO: {pacotes_segundo_formatado}
     =================================================
     """
     )
 
-'''
+
+"""
 - TESTES PARA MENU -
 
 def main():
@@ -92,4 +111,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-'''
+"""

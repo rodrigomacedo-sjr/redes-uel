@@ -51,3 +51,40 @@ def enviar_ack_udp(sock, endereco, seq):
     mensagem = f"ACK{seq}".encode()
 
     sock.sendto(mensagem, endereco)
+
+
+def formatar_numero(numero, casas_decimais=2):
+    """
+    Formata número com pontos como separadores de milhares e vírgula para decimais
+    Exemplo: 1234567.89 -> "1.234.567,89"
+    """
+    # Arredonda o número para o número especificado de casas decimais
+    numero_arredondado = round(numero, casas_decimais)
+
+    # Separa parte inteira e decimal
+    if casas_decimais > 0:
+        parte_inteira = int(numero_arredondado)
+        parte_decimal = numero_arredondado - parte_inteira
+        parte_decimal_str = f"{parte_decimal:.{casas_decimais}f}"[2:]  # Remove "0."
+    else:
+        parte_inteira = int(numero_arredondado)
+        parte_decimal_str = ""
+
+    # Formata parte inteira com pontos como separadores de milhares
+    parte_inteira_str = f"{parte_inteira:,}".replace(",", ".")
+
+    # Junta parte inteira e decimal
+    if casas_decimais > 0:
+        return f"{parte_inteira_str},{parte_decimal_str}"
+    else:
+        return parte_inteira_str
+
+
+def formatar_velocidades(velocidades_dict, casas_decimais=2):
+    """
+    Formata o dicionário de velocidades com formatação brasileira
+    """
+    velocidades_formatadas = {}
+    for unidade, valor in velocidades_dict.items():
+        velocidades_formatadas[unidade] = formatar_numero(valor, casas_decimais)
+    return velocidades_formatadas
