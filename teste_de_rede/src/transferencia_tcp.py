@@ -107,69 +107,27 @@ def receber_pacotes(remetente: tuple):
         recebidos = set()
         stats = []
 
-        buffer = b""
-        stats_bruto = b""
-        fim_recebido = False
-
         print(f"Aguardando pacotes...")
-        inicio_recepcao = time.perf_counter()  # Marca o início da recepção
+        inicio_recepcao = time.perf_counter()
 
-        while not fim_recebido:
-            # 1. Processa o que já está no buffer
-            while len(buffer) >= TAMANHO_BYTES:
-                pacote = buffer[:TAMANHO_BYTES]
-                buffer = buffer[TAMANHO_BYTES:]
-
-                seq = int.from_bytes(pacote[:4], "big")
-                recebidos.add(seq)
-
-            # 2. Lê mais dados da rede
-            dados = conn.recv(4096)  # Lê em chunks maiores para eficiência
+        while True:
+            dados = conn.recv(TAMANHO_BYTES)
             if not dados:
-                print("Conexão fechada inesperadamente.")
                 break
 
-            buffer += dados
-
-            # 3. Verifica se o sinal de FIM chegou
-            if b"FIM" in buffer:
+            if dados.startswith(b"FIM"):
                 print("Sinal de finalização recebido")
-                # Separa o que veio antes do FIM do que veio depois (as estatísticas)
-                partes = buffer.split(b"FIM", 1)
-                buffer = partes[0]  # Processa o resto dos pacotes
-                stats_bruto = partes[1]  # As estatísticas já estão aqui
-                fim_recebido = True
+                stats_bruto = dados[3:]
+                try:
+                    stats_str = stats_bruto.decode("utf-8")
+                    stats = stats_str.split(",")
+                except:
+                    stats = []
+                break
 
-        # Processa qualquer pacote restante que ficou no buffer antes do "FIM"
-        while len(buffer) >= TAMANHO_BYTES:
-            pacote = buffer[:TAMANHO_BYTES]
-            buffer = buffer[TAMANHO_BYTES:]
-            seq = int.from_bytes(pacote[:4], "big")
-            recebidos.add(seq)
-
-        # Tenta ler tudo se não foi possível da primeira vez
-        if len(stats_bruto) < 10:
-            try:
-                dados_adicionais = conn.recv(1024)
-                if dados_adicionais:
-                    stats_bruto += dados_adicionais
-            except:
-                pass
-
-        # Decodifica e limpa as estatísticas
-        try:
-            stats_decodificado = stats_bruto.strip().decode("utf-8")
-            if stats_decodificado:
-                # Remove vírgulas extras e espaços
-                stats_limpo = stats_decodificado.strip(", ")
-                stats = stats_limpo.split(",")
-                # Remove espaços em branco de cada elemento
-                stats = [s.strip() for s in stats if s.strip()]
-            else:
-                stats = []
-        except Exception as e:
-            print(f"Erro ao decodificar estatísticas: {e}")
-            stats = []
+            if len(dados) == TAMANHO_BYTES:
+                seq = int.from_bytes(dados[:4], "big")
+                recebidos.add(seq)
 
         fim_recepcao = time.perf_counter()
         tempo_recepcao = fim_recepcao - inicio_recepcao
