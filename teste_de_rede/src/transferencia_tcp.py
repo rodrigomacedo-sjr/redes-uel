@@ -24,10 +24,6 @@ def enviar_pacotes(destinatario: tuple):
         print(f"Conectando em {destinatario[0]}:{destinatario[1]}...")
         sock.connect(destinatario)
         print(f"Conectado! Iniciando envio de pacotes...")
-    except ConnectionRefusedError:
-        print(f"Erro: Conexão recusada. Verifique se o servidor está rodando em {destinatario[0]}:{destinatario[1]}")
-        sock.close()
-        return None
     except Exception as e:
         print(f"Erro na conexão: {e}")
         sock.close()
@@ -41,11 +37,11 @@ def enviar_pacotes(destinatario: tuple):
     while time.perf_counter() < tempo_limite:
         pacotes_enviados += 1
 
-        sequecia_bytes = pacotes_enviados.to_bytes(4, "big")
+        sequencia_bytes = pacotes_enviados.to_bytes(4, "big")
         string_bytes = STRING_TESTE.encode()
-        tamanho_payload = TAMANHO_BYTES - len(sequecia_bytes) - len(string_bytes)
+        tamanho_payload = TAMANHO_BYTES - len(sequencia_bytes) - len(string_bytes)
         payload = os.urandom(tamanho_payload)
-        dados = sequecia_bytes + string_bytes + payload
+        dados = sequencia_bytes + string_bytes + payload
 
         try:
             sock.sendall(dados)
@@ -85,25 +81,23 @@ def receber_pacotes(remetente: tuple):
         Um dicionário com as estatísticas da recepção
     """
     sock = criar_socket("TCP")
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Permite reutilizar a porta
+    sock.setsockopt(
+        socket.SOL_SOCKET, socket.SO_REUSEADDR, 1
+    )  # Permite reutilizar a porta
     sock.settimeout(30)  # Timeout para operações de socket
-    
+
     try:
         sock.bind(remetente)
         sock.listen(1)
         print(f"Servidor TCP escutando em {remetente[0]}:{remetente[1]}")
-    except OSError as e:
-        print(f"Erro ao fazer bind na porta {remetente[1]}: {e}")
+    except Exception as e:
+        print(f"Erro ao criar servidor para escuta: {e}")
         sock.close()
         return None
 
     try:
         conn, addr = sock.accept()
         print(f"Conexão aceita de {addr[0]}:{addr[1]}")
-    except socket.timeout:
-        print("Timeout: Nenhuma conexão recebida")
-        sock.close()
-        return None
     except Exception as e:
         print(f"Erro ao aceitar conexão: {e}")
         sock.close()
@@ -113,15 +107,13 @@ def receber_pacotes(remetente: tuple):
         recebidos = set()
         stats = []
 
-        # Lógica de buffer para lidar com TCP
-        # Garante que pacotes sejam processados corretamente, mesmo em pedaços
         buffer = b""
         stats_bruto = b""
         fim_recebido = False
 
         print(f"Aguardando pacotes...")
         inicio_recepcao = time.perf_counter()  # Marca o início da recepção
-        
+
         while not fim_recebido:
             # 1. Processa o que já está no buffer
             while len(buffer) >= TAMANHO_BYTES:
@@ -155,37 +147,37 @@ def receber_pacotes(remetente: tuple):
             seq = int.from_bytes(pacote[:4], "big")
             recebidos.add(seq)
 
-        # Se não há dados suficientes no stats_bruto, tenta ler mais uma vez
-        if len(stats_bruto) < 10:  # Tamanho mínimo esperado para as estatísticas
+        # Tenta ler tudo se não foi possível da primeira vez
+        if len(stats_bruto) < 10:
             try:
                 dados_adicionais = conn.recv(1024)
                 if dados_adicionais:
                     stats_bruto += dados_adicionais
             except:
-                pass  # Ignora erros na leitura adicional
-        
+                pass
+
         # Decodifica e limpa as estatísticas
         try:
-            stats_decodificado = stats_bruto.strip().decode('utf-8')
+            stats_decodificado = stats_bruto.strip().decode("utf-8")
             if stats_decodificado:
                 # Remove vírgulas extras e espaços
-                stats_limpo = stats_decodificado.strip(', ')
+                stats_limpo = stats_decodificado.strip(", ")
                 stats = stats_limpo.split(",")
                 # Remove espaços em branco de cada elemento
                 stats = [s.strip() for s in stats if s.strip()]
             else:
                 stats = []
-        except UnicodeDecodeError as e:
+        except Exception as e:
             print(f"Erro ao decodificar estatísticas: {e}")
             stats = []
 
-        fim_recepcao = time.perf_counter()  # Marca o fim da recepção
-        tempo_recepcao = fim_recepcao - inicio_recepcao  # Calcula o tempo total de recepção
+        fim_recepcao = time.perf_counter()
+        tempo_recepcao = fim_recepcao - inicio_recepcao
 
     except Exception as e:
         print(f"Ocorreu um erro durante a recepção: {e}")
         stats = []
-        tempo_recepcao = 0  # Em caso de erro, define tempo como 0
+        tempo_recepcao = 20
     finally:
         if "conn" in locals():
             conn.close()
@@ -207,14 +199,14 @@ def receber_pacotes(remetente: tuple):
         perdidos = 0
         tempo_recepcao = 0
 
-    # Garante que o tempo nunca seja zero para evitar divisão por zero
-    tempo_recepcao_final = max(tempo_recepcao, 0.001)  # Mínimo de 1ms
-    tempo_envio_final = max(tempo_envio, 0.001)  # Mínimo de 1ms
+    # Garantir que o tempo não seja 0
+    tempo_recepcao_final = max(tempo_recepcao, 0.001)
+    tempo_envio_final = max(tempo_envio, 0.001)
 
     return {
         "quantidade_recebidos": len(recebidos),
         "quantidade_enviados": enviados,
-        "retransmissoes": 0,  # Métrica não calculada aqui
+        "retransmissoes": 0,  # TCP não calcula
         "perdidos": perdidos,
         "tempo": tempo_recepcao_final,  # Usa o tempo de recepção medido localmente
         "tempo_envio": tempo_envio_final,  # Tempo de envio recebido do remetente

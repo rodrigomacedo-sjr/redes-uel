@@ -9,7 +9,7 @@ def criar_socket(protocolo):
     Args:
         protocolo: "tcp" ou "udp".
 
-    Returns:
+    Retorna:
         socket.socket: O objeto socket criado.
     """
     if protocolo.lower() == "tcp":
@@ -25,7 +25,7 @@ def aguardar_ack_udp(sock):
     Args:
         sock (socket.socket): O socket UDP no qual se espera o ACK.
 
-    Returns:
+    Retorna:
         bool: True se um ACK for recebido dentro do TIMEOUT, False caso contrário.
     """
     sock.settimeout(TIMEOUT)

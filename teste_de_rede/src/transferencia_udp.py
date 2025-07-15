@@ -1,6 +1,6 @@
 import os
 from utils import criar_socket, aguardar_ack_udp, enviar_ack_udp
-from config import DURACAO_SEGUNDOS, MAX_TENTATIVAS, STRING_TESTE
+from config import DURACAO_SEGUNDOS, MAX_TENTATIVAS, STRING_TESTE, TAMANHO_BYTES
 import time
 
 
@@ -17,7 +17,7 @@ def enviar_pacotes(destinatario: tuple):
     """
     sock = criar_socket("UDP")
     sock.bind(("", 0))
-    sock.settimeout(1.0)  # Timeout para operações UDP
+    sock.settimeout(1.0)  # Tempo máximo de espera
 
     retransmissoes = 0
     perdidos = 0
@@ -27,32 +27,17 @@ def enviar_pacotes(destinatario: tuple):
 
     inicio = time.perf_counter()
     tempo_limite = inicio + DURACAO_SEGUNDOS
-    
+
     while time.perf_counter() < tempo_limite:
         pacotes_enviados += 1
 
-        header_size = 4 + len(STRING_TESTE.encode())
-        payload_size = 500 - header_size
+        sequencia_bytes = pacotes_enviados.to_bytes(4, "big")
+        string_bytes = STRING_TESTE.encode()
+        tamanho_payload = TAMANHO_BYTES - len(sequencia_bytes) - len(string_bytes)
+        payload = os.urandom(tamanho_payload)
+        dados = sequencia_bytes + string_bytes + payload
 
-        payload = os.urandom(payload_size)
-        dados = pacotes_enviados.to_bytes(4, "big") + STRING_TESTE.encode() + payload
-
-        # Lógica e ACK
-        ack_recebido = False
-        tentativas_reenvio = 0
-        while tentativas_reenvio < MAX_TENTATIVAS and not ack_recebido:
-            sock.sendto(dados, destinatario)
-            ack_recebido = aguardar_ack_udp(sock)
-            if not ack_recebido:
-                tentativas_reenvio += 1
-                if tentativas_reenvio < MAX_TENTATIVAS:
-                    retransmissoes += 1
-
-        if not ack_recebido:
-            print(
-                f"Pacote {pacotes_enviados} perdido depois de {MAX_TENTATIVAS} tentativas."
-            )
-            perdidos += 1
+        sock.sendto(dados, destinatario)
 
     fim_envio = time.perf_counter()
     duracao = fim_envio - inicio
@@ -99,13 +84,13 @@ def receber_pacotes(remetente: tuple):
     Retorna um dicionário com as estatísticas da recepção
     """
     sock = criar_socket("UDP")
-    sock.settimeout(30.0)  # Timeout para recepção UDP
-    
+    sock.settimeout(30.0)  # Tempo máximo de espera
+
     try:
         sock.bind(remetente)
         print(f"Servidor UDP escutando em {remetente[0]}:{remetente[1]}")
-    except OSError as e:
-        print(f"Erro ao fazer bind na porta {remetente[1]}: {e}")
+    except Exception as e:
+        print(f"Erro ao criar servidor para escuta: {e}")
         sock.close()
         return None
 
@@ -113,56 +98,48 @@ def receber_pacotes(remetente: tuple):
     stats_final_bytes = b""
 
     print("Aguardando pacotes...")
-    inicio_recepcao = time.perf_counter()  # Marca o início da recepção
-    
+    fim_recepcao = 0
+    inicio_recepcao = time.perf_counter()
+
     while True:
         try:
             data, addr = sock.recvfrom(1024)
 
             if data == b"FIM":
                 print("Sinal de FIM recebido.")
+                fim_recepcao = time.perf_counter()
                 enviar_ack_udp(sock, addr, 0)
                 break
 
             try:
-                # Primeiro tenta decodificar para ver se são estatísticas
-                data_str = data.decode('utf-8')
-                # Verifica se é uma string de estatísticas válida
-                if ',' in data_str:
-                    partes = data_str.split(',')
+                # É o pacote de estatísticas?
+                data_str = data.decode("utf-8")
+
+                # Válido
+                if "," in data_str:
+                    partes = data_str.split(",")
                     if len(partes) >= 4:
                         try:
-                            # Tenta converter para números para validar o formato
+                            # Converte formato
                             int(partes[0])  # pacotes
-                            int(partes[1])  # retransmissões  
+                            int(partes[1])  # retransmissões
                             int(partes[2])  # perdidos
                             float(partes[3])  # tempo
-                            # Se chegou aqui, são estatísticas válidas
+
                             print("Estatísticas finais recebidas.")
                             stats_final_bytes = data
                             enviar_ack_udp(sock, addr, 0)
                             break
-                        except (ValueError, IndexError):
-                            # Não conseguiu converter, não são estatísticas
+                        except Exception:
+                            # Não é um pacote de estatísticas válido
                             pass
-                
-                # Se chegou aqui, não são estatísticas, tenta processar como pacote normal
+
+                # É um pacote normal
                 seq = int.from_bytes(data[:4], "big")
                 recebidos.add(seq)
                 enviar_ack_udp(sock, addr, seq)
-            except UnicodeDecodeError:
-                # Dados binários - é um pacote normal
-                try:
-                    seq = int.from_bytes(data[:4], "big")
-                    recebidos.add(seq)
-                    enviar_ack_udp(sock, addr, seq)
-                except (ValueError, IndexError):
-                    print("Pacote com formato inválido recebido, ignorando.")
-            except (ValueError, IndexError):
-                print("Enviando ACK e finalizando.")
-                stats_final_bytes = data
-                enviar_ack_udp(sock, addr, 0)
-                break
+            except Exception:
+                print("Pacote inválido recebido")
 
         except Exception as e:
             print(f"Erro ao receber pacote: {e}")
@@ -176,8 +153,7 @@ def receber_pacotes(remetente: tuple):
         except Exception as e:
             print(f"Erro ao receber estatísticas: {e}")
 
-    fim_recepcao = time.perf_counter()  # Marca o fim da recepção
-    tempo_recepcao = fim_recepcao - inicio_recepcao  # Calcula o tempo total de recepção
+    tempo_recepcao = fim_recepcao - inicio_recepcao
 
     sock.close()
     print("Conexão fechada.")
@@ -185,16 +161,8 @@ def receber_pacotes(remetente: tuple):
     stats_final = {}
     if stats_final_bytes:
         try:
-            # Tenta diferentes codificações se UTF-8 falhar
-            try:
-                stats_str = stats_final_bytes.decode('utf-8')
-            except UnicodeDecodeError:
-                try:
-                    stats_str = stats_final_bytes.decode('latin1')
-                except UnicodeDecodeError:
-                    print("Erro: não foi possível decodificar as estatísticas")
-                    stats_str = ""
-            
+            stats_str = stats_final_bytes.decode("utf-8")
+
             if stats_str:
                 dados = stats_str.split(",")
                 if len(dados) >= 4:
@@ -205,22 +173,23 @@ def receber_pacotes(remetente: tuple):
                         "tempo": float(dados[3]),
                     }
                 else:
-                    raise ValueError("Formato de estatísticas inválido")
-        except (ValueError, IndexError) as e:
+                    print("Formato de estatísticas inválido")
+                    raise Exception
+        except Exception as e:
             print(f"Erro ao decodificar estatísticas: {e}")
             stats_final = {}
 
     perdidos_receptor = stats_final.get("quantidade_enviados", 0) - len(recebidos)
 
     # Garante que o tempo nunca seja zero para evitar divisão por zero
-    tempo_recepcao_final = max(tempo_recepcao, 0.001)  # Mínimo de 1ms
-    tempo_envio_final = max(stats_final.get("tempo", 0), 0.001)  # Mínimo de 1ms
+    tempo_recepcao_final = max(tempo_recepcao, 0.001) 
+    tempo_envio_final = max(stats_final.get("tempo", 0), 0.001)
 
     return {
         "quantidade_recebidos": len(recebidos),
         "quantidade_enviados": stats_final.get("quantidade_enviados", 0),
         "retransmissoes_remetente": stats_final.get("retransmissoes", 0),
         "perdidos": perdidos_receptor,
-        "tempo": tempo_recepcao_final,  
-        "tempo_envio": tempo_envio_final, 
+        "tempo": tempo_recepcao_final,
+        "tempo_envio": tempo_envio_final,
     }
