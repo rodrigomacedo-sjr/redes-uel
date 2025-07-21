@@ -106,28 +106,44 @@ def receber_pacotes(remetente: tuple):
     try:
         recebidos = set()
         stats = []
+        buffer = b""
 
         print(f"Aguardando pacotes...")
         inicio_recepcao = time.perf_counter()
 
         while True:
-            dados = conn.recv(TAMANHO_BYTES)
+            dados = conn.recv(4096)  # Buffer maior para receber múltiplos pacotes
             if not dados:
                 break
-
-            if dados.startswith(b"FIM"):
-                print("Sinal de finalização recebido")
-                stats_bruto = dados[3:]
-                try:
-                    stats_str = stats_bruto.decode("utf-8")
-                    stats = stats_str.split(",")
-                except:
-                    stats = []
-                break
-
-            if len(dados) >= 4:
-                seq = int.from_bytes(dados[:4], "big")
-                recebidos.add(seq)
+            
+            buffer_completo = buffer + dados
+            
+            # Processa todos os pacotes completos no buffer
+            while len(buffer_completo) >= TAMANHO_BYTES:
+                pacote = buffer_completo[:TAMANHO_BYTES]
+                buffer_completo = buffer_completo[TAMANHO_BYTES:]
+                
+                if pacote.startswith(b"FIM"):
+                    print("Sinal de finalização recebido")
+                    stats_bruto = pacote[3:]
+                    try:
+                        stats_str = stats_bruto.decode("utf-8")
+                        stats = stats_str.split(",")
+                    except:
+                        stats = []
+                    buffer = b""
+                    break
+                
+                if len(pacote) >= 4:
+                    seq = int.from_bytes(pacote[:4], "big")
+                    recebidos.add(seq)
+            else:
+                # Guarda dados incompletos para o próximo recebimento
+                buffer = buffer_completo
+                continue
+            
+            # Se chegou até aqui, recebeu FIM
+            break
 
         fim_recepcao = time.perf_counter()
         tempo_recepcao = fim_recepcao - inicio_recepcao
@@ -135,7 +151,8 @@ def receber_pacotes(remetente: tuple):
     except Exception as e:
         print(f"Ocorreu um erro durante a recepção: {e}")
         stats = []
-        tempo_recepcao = 20
+        tempo_recepcao = 0.001  # Valor mínimo não zero
+        recebidos = set()  # Garantir que recebidos está definido
     finally:
         if "conn" in locals():
             conn.close()
