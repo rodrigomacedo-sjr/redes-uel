@@ -92,7 +92,7 @@ def receber_pacotes(remetente: tuple):
     except Exception as e:
         print(f"Erro ao criar servidor para escuta: {e}")
         sock.close()
-        return None
+        return {}
 
     recebidos = set()
     stats_final_bytes = b""
@@ -182,7 +182,7 @@ def receber_pacotes(remetente: tuple):
     perdidos_receptor = stats_final.get("quantidade_enviados", 0) - len(recebidos)
 
     # Garante que o tempo nunca seja zero para evitar divisão por zero
-    tempo_recepcao_final = max(tempo_recepcao, 0.001) 
+    tempo_recepcao_final = max(tempo_recepcao, 0.001)
     tempo_envio_final = max(stats_final.get("tempo", 0), 0.001)
 
     return {

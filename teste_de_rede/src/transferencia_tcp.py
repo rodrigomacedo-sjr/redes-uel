@@ -125,7 +125,7 @@ def receber_pacotes(remetente: tuple):
                     stats = []
                 break
 
-            if len(dados) == TAMANHO_BYTES:
+            if len(dados) >= 4:
                 seq = int.from_bytes(dados[:4], "big")
                 recebidos.add(seq)
 
