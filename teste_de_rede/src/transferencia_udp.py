@@ -103,7 +103,7 @@ def receber_pacotes(remetente: tuple):
 
     while True:
         try:
-            data, addr = sock.recvfrom(1024)
+            data, addr = sock.recvfrom(TAMANHO_BYTES + 100)  # Buffer maior para receber pacotes completos
 
             if data == b"FIM":
                 print("Sinal de FIM recebido.")
@@ -111,11 +111,9 @@ def receber_pacotes(remetente: tuple):
                 enviar_ack_udp(sock, addr, 0)
                 break
 
+            # Primeiro tenta verificar se é um pacote de estatísticas (só texto)
             try:
-                # É o pacote de estatísticas?
                 data_str = data.decode("utf-8")
-
-                # Válido
                 if "," in data_str:
                     partes = data_str.split(",")
                     if len(partes) >= 4:
@@ -131,15 +129,18 @@ def receber_pacotes(remetente: tuple):
                             enviar_ack_udp(sock, addr, 0)
                             break
                         except Exception:
-                            # Não é um pacote de estatísticas válido
                             pass
+            except UnicodeDecodeError:
+                # Se não conseguir decodificar, é um pacote normal com dados binários
+                pass
 
-                # É um pacote normal
+            # Trata como pacote normal - extrai sequência dos primeiros 4 bytes
+            if len(data) >= 4:
                 seq = int.from_bytes(data[:4], "big")
                 recebidos.add(seq)
                 enviar_ack_udp(sock, addr, seq)
-            except Exception:
-                print("Pacote inválido recebido")
+            else:
+                print("Pacote muito pequeno recebido")
 
         except Exception as e:
             print(f"Erro ao receber pacote: {e}")
